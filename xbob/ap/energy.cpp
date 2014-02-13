@@ -249,6 +249,39 @@ static PyGetSetDef PyBobApEnergy_getseters[] = {
     {0}  /* Sentinel */
 };
 
+static int PyBobApEnergy_Call
+(PyBobApEnergyObject* self, PyObject *args, PyObject* kwds) {
+
+  /* Parses input arguments in a single shot */
+  static const char* const_kwlist[] = {"input", 0};
+  static char** kwlist = const_cast<char**>(const_kwlist);
+
+  PyBlitzArrayObject* input = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&", kwlist,
+        &PyBlitzArray_Converter, &input)) return 0;
+
+  //STOPPED HERE
+  try {
+    self->cxx = new bob::ap::Energy(sampling_frequency, win_length_ms, win_shift_ms);
+    if (!self->cxx) {
+      PyErr_Format(PyExc_MemoryError, "cannot create new object of type `%s' - no more memory", Py_TYPE(self)->tp_name);
+      return -1;
+    }
+    self->parent.cxx = self->cxx;
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot create new object of type `%s' - unknown exception thrown", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0; ///< SUCCESS
+
+}
+
 PyTypeObject PyBobApEnergy_Type = {
     PyVarObject_HEAD_INIT(0, 0)
     s_energy_str,                             /*tp_name*/
