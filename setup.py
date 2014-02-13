@@ -28,6 +28,7 @@ setup(
     install_requires=[
       'setuptools',
       'xbob.blitz',
+      'xbob.io',
     ],
 
     nameapace_packages=[
