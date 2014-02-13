@@ -15,12 +15,13 @@ PyDoc_STRVAR(s_frame_extractor_doc,
 "FrameExtractor(sampling_frequency, [win_length_ms=20., [win_shift_ms=10.]]) -> new FrameExtractor\n\
 FrameExtractor(other) -> new FrameExtractor\n\
 \n\
-This class is a base type for classes that perform audio processing on a\n\
-frame basis. It *can* be instantiated from Python, but not very useful by\n\
-itself.\n\
+This class is a base type for classes that perform audio\n\
+processing on a frame basis. It *can* be instantiated from Python.\n\
 \n\
-You can instantiate objects of this class by passing a set of construction\n\
-parameters or another object of which the base type is ``FrameExtractor``.\n\
+Objects of this class, after configuration, can extract audio frame\n\
+from a 1D audio array/signal. You can instantiate objects of this\n\
+class by passing a set of construction parameters or another object\n\
+of which the base type is ``FrameExtractor``.\n\
 \n\
 Parameters:\n\
 \n\
@@ -95,12 +96,12 @@ static int PyBobApFrameExtractor_InitCopy
 
 }
 
-static int PyBobApFrameExtractor_InitParameters(PyBobApFrameExtractorObject* self, 
-    PyObject *args, PyObject* kwds) {
+static int PyBobApFrameExtractor_InitParameters
+(PyBobApFrameExtractorObject* self, PyObject *args, PyObject* kwds) {
 
   /* Parses input arguments in a single shot */
   static const char* const_kwlist[] = {
-    "sampling_frequency", 
+    "sampling_frequency",
     "win_length_ms",
     "win_shift_ms",
     0};
@@ -109,7 +110,8 @@ static int PyBobApFrameExtractor_InitParameters(PyBobApFrameExtractorObject* sel
   double sampling_frequency = 0.;
   double win_length_ms = 20.;
   double win_shift_ms = 10.;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|dd", kwlist, &length)) return -1;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|dd", kwlist,
+        &sampling_frequency, &win_length_ms, &win_shift_ms)) return -1;
 
   try {
     self->cxx = new bob::ap::FrameExtractor(sampling_frequency, win_length_ms, win_shift_ms);
@@ -229,7 +231,7 @@ static int PyBobApFrameExtractor_SetSamplingFrequency
     return -1;
   }
 
-  double d = PyFloat_AsFloat(o);
+  double d = PyFloat_AsDouble(o);
   if (PyErr_Occurred()) return -1;
 
   try {
@@ -248,6 +250,100 @@ static int PyBobApFrameExtractor_SetSamplingFrequency
 
 }
 
+PyDoc_STRVAR(s_win_length_ms_str, "win_length_ms");
+PyDoc_STRVAR(s_win_length_ms_doc,
+"The window length of the cepstral analysis in milliseconds"
+);
+
+static PyObject* PyBobApFrameExtractor_GetWinLengthMs
+(PyBobApFrameExtractorObject* self, void* /*closure*/) {
+  return Py_BuildValue("d", self->cxx->getWinLengthMs());
+}
+
+static int PyBobApFrameExtractor_SetWinLengthMs
+(PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
+
+  if (!PyNumber_Check(o)) {
+    PyErr_Format(PyExc_TypeError, "`%s' windows length can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
+    return -1;
+  }
+
+  double d = PyFloat_AsDouble(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setWinLengthMs(d);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `win_length_ms' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
+
+}
+
+PyDoc_STRVAR(s_win_shift_ms_str, "win_shift_ms");
+PyDoc_STRVAR(s_win_shift_ms_doc,
+"The window shift of the cepstral analysis in milliseconds"
+);
+
+static PyObject* PyBobApFrameExtractor_GetWinShiftMs
+(PyBobApFrameExtractorObject* self, void* /*closure*/) {
+  return Py_BuildValue("d", self->cxx->getWinShiftMs());
+}
+
+static int PyBobApFrameExtractor_SetWinShiftMs
+(PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
+
+  if (!PyNumber_Check(o)) {
+    PyErr_Format(PyExc_TypeError, "`%s' windows shift can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
+    return -1;
+  }
+
+  double d = PyFloat_AsDouble(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setWinShiftMs(d);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `win_shift_ms' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
+
+}
+
+PyDoc_STRVAR(s_win_length_str, "win_length");
+PyDoc_STRVAR(s_win_length_doc,
+"The normalized window length w.r.t. the sample frequency"
+);
+
+static PyObject* PyBobApFrameExtractor_GetWinLength
+(PyBobApFrameExtractorObject* self, void* /*closure*/) {
+  return Py_BuildValue("n", self->cxx->getWinLength());
+}
+
+PyDoc_STRVAR(s_win_shift_str, "win_shift");
+PyDoc_STRVAR(s_win_shift_doc,
+"The normalized window shift w.r.t. the sample frequency"
+);
+
+static PyObject* PyBobApFrameExtractor_GetWinShift
+(PyBobApFrameExtractorObject* self, void* /*closure*/) {
+  return Py_BuildValue("n", self->cxx->getWinShift());
+}
+
 static PyGetSetDef PyBobApFrameExtractor_getseters[] = {
     {
       s_sampling_frequency_str,
@@ -256,19 +352,132 @@ static PyGetSetDef PyBobApFrameExtractor_getseters[] = {
       s_sampling_frequency_doc,
       0
     },
+    {
+      s_win_length_ms_str,
+      (getter)PyBobApFrameExtractor_GetWinLengthMs,
+      (setter)PyBobApFrameExtractor_SetWinLengthMs,
+      s_win_length_ms_doc,
+      0
+    },
+    {
+      s_win_shift_ms_str,
+      (getter)PyBobApFrameExtractor_GetWinShiftMs,
+      (setter)PyBobApFrameExtractor_SetWinShiftMs,
+      s_win_shift_ms_doc,
+      0
+    },
+    {
+      s_win_length_str,
+      (getter)PyBobApFrameExtractor_GetWinLength,
+      0,
+      s_win_length_doc,
+      0
+    },
+    {
+      s_win_shift_str,
+      (getter)PyBobApFrameExtractor_GetWinShift,
+      0,
+      s_win_shift_doc,
+      0
+    },
     {0}  /* Sentinel */
 };
 
 PyDoc_STRVAR(s_shape_str, "get_shape");
 PyDoc_STRVAR(s_shape_doc,
-"Computes the shape of the output features, given the size of an input\n\
-array or an input array.\n\
+"x.get_shape(input) -> tuple\n\
+\n\
+Computes the shape of the output features, given the size of\n\
+an input array or an input array.\n\
+\n\
+Parameters:\n\
+\n\
+input\n\
+  [int|array] Either an integral value or an array for which\n\
+  the output shape of this extractor is going to be computed.\n\
+\n\
+This method always returns a 2-tuple containing the shape of\n\
+output features produced by this extractor.\n\
 ");
 
-static PyObject* PyBobApFrameExtractor_GetShape
-(PyBobApFrameExtractorObject* self, void* /*closure*/) {
-  return Py_BuildValue("(n)", self->cxx->getLength());
+static PyObject* PyBobApFrameExtractor_GetShapeInt
+(PyBobApFrameExtractorObject* self, PyObject* args, PyObject* kwds) {
+
+  /* Parses input arguments in a single shot */
+  static const char* const_kwlist[] = {"input", 0};
+  static char** kwlist = const_cast<char**>(const_kwlist);
+
+  Py_ssize_t input = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "n", kwlist, &input)) return 0;
+
+  blitz::TinyVector<int,2> retval = self->cxx->getShape(input);
+
+  return Py_BuildValue("(nn)", retval[0], retval[1]);
+
 }
+
+static PyObject* PyBobApFrameExtractor_GetShapeArray
+(PyBobApFrameExtractorObject* self, PyObject* args, PyObject* kwds) {
+
+  /* Parses input arguments in a single shot */
+  static const char* const_kwlist[] = {"input", 0};
+  static char** kwlist = const_cast<char**>(const_kwlist);
+
+  PyBlitzArrayObject* input = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&", kwlist,
+        &input, &PyBlitzArray_Converter)) return 0;
+  auto input_ = make_safe(input);
+
+  if (input->ndim != 1 || input->type_num != NPY_FLOAT64) {
+    PyErr_Format(PyExc_TypeError, "`%s' only accepts 1-dimensional 64-bit float arrays (not %" PY_FORMAT_SIZE_T "dD %s arrays)", Py_TYPE(self)->tp_name, input->ndim, PyBlitzArray_TypenumAsString(input->type_num));
+    return 0;
+  }
+
+  blitz::TinyVector<int,2> retval =
+    self->cxx->getShape(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
+
+  return Py_BuildValue("(nn)", retval[0], retval[1]);
+
+}
+
+static PyObject* PyBobApFrameExtractor_GetShape
+(PyBobApFrameExtractorObject* self, PyObject* args, PyObject* kwds) {
+
+  // input object can either be an integral value or an array<double,1>
+  // the return value is always a 2-tuple
+
+  Py_ssize_t nargs = (args?PyTuple_Size(args):0) + (kwds?PyDict_Size(kwds):0);
+
+  if (nargs != 1) {
+    PyErr_Format(PyExc_RuntimeError, "%s.%s expects 1 parameter, but you passed %" PY_FORMAT_SIZE_T "d", Py_TYPE(self)->tp_name, s_shape_str, nargs);
+    return 0;
+  }
+
+  PyObject* arg = 0; ///< borrowed (don't delete)
+  if (PyTuple_Size(args)) arg = PyTuple_GET_ITEM(args, 0);
+  else {
+    PyObject* tmp = PyDict_Values(kwds);
+    auto tmp_ = make_safe(tmp);
+    arg = PyList_GET_ITEM(tmp, 0);
+  }
+
+  if (PyNumber_Check(arg)) {
+    return PyBobApFrameExtractor_GetShapeInt(self, args, kwds);
+  }
+
+  return PyBobApFrameExtractor_GetShapeArray(self, args, kwds);
+
+}
+
+static PyMethodDef PyBobApFrameExtractor_methods[] = {
+    {
+      s_shape_str,
+      (PyCFunction)PyBobApFrameExtractor_GetShape,
+      METH_VARARGS|METH_KEYWORDS,
+      s_shape_doc
+    },
+    {0}  /* Sentinel */
+};
 
 PyTypeObject PyBobApFrameExtractor_Type = {
     PyVarObject_HEAD_INIT(0, 0)
@@ -285,7 +494,7 @@ PyTypeObject PyBobApFrameExtractor_Type = {
     0,                                        /*tp_as_sequence*/
     0,                                        /*tp_as_mapping*/
     0,                                        /*tp_hash */
-    (ternaryfunc)PyBobApFrameExtractor_Call,  /* tp_call */
+    0,                                        /* tp_call */
     (reprfunc)PyBobApFrameExtractor_Repr,     /*tp_str*/
     0,                                        /*tp_getattro*/
     0,                                        /*tp_setattro*/
@@ -298,7 +507,7 @@ PyTypeObject PyBobApFrameExtractor_Type = {
     0,		                                    /* tp_weaklistoffset */
     0,		                                    /* tp_iter */
     0,		                                    /* tp_iternext */
-    0,                                        /* tp_methods */
+    PyBobApFrameExtractor_methods,            /* tp_methods */
     0,                                        /* tp_members */
     PyBobApFrameExtractor_getseters,          /* tp_getset */
     0,                                        /* tp_base */

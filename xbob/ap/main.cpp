@@ -11,6 +11,8 @@
 #include <xbob.blitz/capi.h>
 #include <xbob.blitz/cleanup.h>
 
+extern PyTypeObject PyBobApFrameExtractor_Type;
+
 static PyMethodDef module_methods[] = {
     {0}  /* Sentinel */
 };
@@ -23,12 +25,15 @@ static PyModuleDef module_definition = {
   XBOB_EXT_MODULE_NAME,
   module_docstr,
   -1,
-  module_methods, 
+  module_methods,
   0, 0, 0, 0
 };
 #endif
 
 static PyObject* create_module (void) {
+
+  PyBobApFrameExtractor_Type.tp_new = PyType_GenericNew;
+  if (PyType_Ready(&PyBobApFrameExtractor_Type) < 0) return 0;
 
 # if PY_VERSION_HEX >= 0x03000000
   PyObject* m = PyModule_Create(&module_definition);
@@ -42,7 +47,10 @@ static PyObject* create_module (void) {
     return 0;
 
   /* register the types to python */
-  
+  Py_INCREF(&PyBobApFrameExtractor_Type);
+  if (PyModule_AddObject(m, "FrameExtractor", (PyObject *)&PyBobApFrameExtractor_Type) < 0) return 0;
+
+
   /* imports xbob.blitz C-API + dependencies */
   if (import_xbob_blitz() < 0) return 0;
 
