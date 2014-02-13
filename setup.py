@@ -28,7 +28,7 @@ setup(
     install_requires=[
       'setuptools',
       'xbob.blitz',
-      'xbob.io',
+      'xbob.sp', # for testing
     ],
 
     nameapace_packages=[
@@ -38,6 +38,7 @@ setup(
     ext_modules = [
       Extension("xbob.ap._library",
         [
+          "xbob/ap/energy.cpp",
           "xbob/ap/frame_extractor.cpp",
           "xbob/ap/main.cpp",
           ],

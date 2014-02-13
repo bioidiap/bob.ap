@@ -6,11 +6,12 @@
 
 import os, sys
 import unittest
-import bob
 import numpy
 import array
 import math
 import time
+
+from . import Energy
 
 #############################################################################
 # Tests blitz-based extrapolation implementation with values returned
@@ -77,8 +78,10 @@ def hamming_window(vector, hamming_kernel, win_length):
   return vector
 
 def log_filter_bank(x, n_filters, p_index, win_size):
+  from xbob.sp import fft
+
   x1 = numpy.array(x, dtype=numpy.complex128)
-  complex_ = bob.sp.fft(x1)
+  complex_ = fft(x1)
   for i in range(0, win_size / 2 + 1):
     re = complex_[i].real
     im = complex_[i].imag
@@ -118,9 +121,9 @@ def energy_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filte
   ## Initialisation part ##
   #########################
 
-  c = bob.ap.Energy(rate_wavsample[0], win_length_ms, win_shift_ms)
+  c = Energy(rate_wavsample[0], win_length_ms, win_shift_ms)
 
-  #ct = bob.ap.TestCeps(c)
+  #ct = TestCeps(c)
 
   sf = rate_wavsample[0]
   data = rate_wavsample[1]
@@ -202,9 +205,9 @@ def energy_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filte
 
 def energy_comparison_run(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
                                pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta):
-  c = bob.ap.Energy(rate_wavsample[0], win_length_ms, win_shift_ms)
+  c = Energy(rate_wavsample[0], win_length_ms, win_shift_ms)
 
-  #ct = bob.ap.TestCeps(c)
+  #ct = TestCeps(c)
   A = c(rate_wavsample[1])
 
   B = energy_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm,

@@ -10,8 +10,7 @@
 #endif
 #include <xbob.blitz/capi.h>
 #include <xbob.blitz/cleanup.h>
-
-extern PyTypeObject PyBobApFrameExtractor_Type;
+#include "types.h"
 
 static PyMethodDef module_methods[] = {
     {0}  /* Sentinel */
@@ -35,6 +34,9 @@ static PyObject* create_module (void) {
   PyBobApFrameExtractor_Type.tp_new = PyType_GenericNew;
   if (PyType_Ready(&PyBobApFrameExtractor_Type) < 0) return 0;
 
+  PyBobApEnergy_Type.tp_base = &PyBobApFrameExtractor_Type;
+  if (PyType_Ready(&PyBobApEnergy_Type) < 0) return 0;
+
 # if PY_VERSION_HEX >= 0x03000000
   PyObject* m = PyModule_Create(&module_definition);
 # else
@@ -50,6 +52,8 @@ static PyObject* create_module (void) {
   Py_INCREF(&PyBobApFrameExtractor_Type);
   if (PyModule_AddObject(m, "FrameExtractor", (PyObject *)&PyBobApFrameExtractor_Type) < 0) return 0;
 
+  Py_INCREF(&PyBobApEnergy_Type);
+  if (PyModule_AddObject(m, "Energy", (PyObject *)&PyBobApEnergy_Type) < 0) return 0;
 
   /* imports xbob.blitz C-API + dependencies */
   if (import_xbob_blitz() < 0) return 0;

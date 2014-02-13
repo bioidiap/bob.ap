@@ -7,7 +7,7 @@
 
 #include <xbob.blitz/cppapi.h>
 #include <xbob.blitz/cleanup.h>
-#include <bob/ap/FrameExtractor.h>
+#include "types.h"
 
 PyDoc_STRVAR(s_frame_extractor_str, XBOB_EXT_MODULE_PREFIX ".FrameExtractor");
 
@@ -40,16 +40,6 @@ other\n\
 \n\
 "
 );
-
-/**
- * Represents either an FrameExtractor
- */
-typedef struct {
-  PyObject_HEAD
-  bob::ap::FrameExtractor* cxx;
-} PyBobApFrameExtractorObject;
-
-extern PyTypeObject PyBobApFrameExtractor_Type; //forward declaration
 
 int PyBobApFrameExtractor_Check(PyObject* o) {
   return PyObject_IsInstance(o, reinterpret_cast<PyObject*>(&PyBobApFrameExtractor_Type));
