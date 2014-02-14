@@ -11,6 +11,7 @@
 #include <bob/ap/FrameExtractor.h>
 #include <bob/ap/Energy.h>
 #include <bob/ap/Spectrogram.h>
+#include <bob/ap/Ceps.h>
 
 /**
  * Represents either an FrameExtractor
@@ -41,5 +42,15 @@ typedef struct {
 } PyBobApSpectrogramObject;
 
 extern PyTypeObject PyBobApSpectrogram_Type; //forward declaration
+
+/**
+ * Represents either the Ceps extractor
+ */
+typedef struct {
+  PyBobApSpectrogramObject parent;
+  bob::ap::Ceps* cxx;
+} PyBobApCepsObject;
+
+extern PyTypeObject PyBobApCeps_Type; //forward declaration
 
 #endif /* XBOB_AP_TYPES_H */
