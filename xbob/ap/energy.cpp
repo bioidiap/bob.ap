@@ -249,36 +249,74 @@ static PyGetSetDef PyBobApEnergy_getseters[] = {
     {0}  /* Sentinel */
 };
 
-static int PyBobApEnergy_Call
+static PyObject* PyBobApEnergy_Call
 (PyBobApEnergyObject* self, PyObject *args, PyObject* kwds) {
 
   /* Parses input arguments in a single shot */
-  static const char* const_kwlist[] = {"input", 0};
+  static const char* const_kwlist[] = {"input", "output", 0};
   static char** kwlist = const_cast<char**>(const_kwlist);
 
   PyBlitzArrayObject* input = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&", kwlist,
-        &PyBlitzArray_Converter, &input)) return 0;
+  PyBlitzArrayObject* output = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&|O&", kwlist,
+        &PyBlitzArray_Converter, &input,
+        &PyBlitzArray_OutputConverter, &output
+        )) return 0;
 
-  //STOPPED HERE
-  try {
-    self->cxx = new bob::ap::Energy(sampling_frequency, win_length_ms, win_shift_ms);
-    if (!self->cxx) {
-      PyErr_Format(PyExc_MemoryError, "cannot create new object of type `%s' - no more memory", Py_TYPE(self)->tp_name);
-      return -1;
+  auto input_ = make_safe(input);
+  auto output_ = make_xsafe(output);
+
+  if (input->type_num != NPY_FLOAT64) {
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 1D 64-bit float arrays for input array `input'", Py_TYPE(self)->tp_name);
+    return 0;
+  }
+
+  if (input->ndim != 1) {
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 1D 64-bit float arrays for input array `input'", Py_TYPE(self)->tp_name);
+    return 0;
+  }
+
+  auto bz_input = PyBlitzArrayCxx_AsBlitz<double,1>(input);
+
+  if (output) {
+
+    if (output->type_num != NPY_FLOAT64) {
+      PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for output array `output'", Py_TYPE(self)->tp_name);
+      return 0;
     }
-    self->parent.cxx = self->cxx;
+
+    if (input->ndim != output->ndim) {
+      PyErr_Format(PyExc_RuntimeError, "Input and output arrays should have matching number of dimensions, but input array `input' has %" PY_FORMAT_SIZE_T "d dimensions while output array `output' has %" PY_FORMAT_SIZE_T "d dimensions", input->ndim, output->ndim);
+      return 0;
+    }
+
+  }
+
+  else {
+
+    Py_ssize_t length = self->cxx->getShape(*bz_input)(0);
+    output = (PyBlitzArrayObject*)PyBlitzArray_SimpleNew(NPY_FLOAT64, 1, &length);
+    if (!output) return 0;
+    output_ = make_safe(output);
+
+  }
+
+  auto bz_output = PyBlitzArrayCxx_AsBlitz<double,1>(output);
+
+  try {
+    self->cxx->operator()(*bz_input, *bz_output);
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
-    return -1;
+    return 0;
   }
   catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot create new object of type `%s' - unknown exception thrown", Py_TYPE(self)->tp_name);
-    return -1;
+    PyErr_Format(PyExc_RuntimeError, "cannot call object of type `%s' - unknown exception thrown", Py_TYPE(self)->tp_name);
+    return 0;
   }
 
-  return 0; ///< SUCCESS
+  Py_INCREF(output);
+  return PyBlitzArray_NUMPY_WRAP(reinterpret_cast<PyObject*>(output));
 
 }
 
@@ -297,7 +335,7 @@ PyTypeObject PyBobApEnergy_Type = {
     0,                                        /*tp_as_sequence*/
     0,                                        /*tp_as_mapping*/
     0,                                        /*tp_hash */
-    0,                                        /* tp_call */
+    (ternaryfunc)PyBobApEnergy_Call,          /* tp_call */
     (reprfunc)PyBobApEnergy_Repr,             /*tp_str*/
     0,                                        /*tp_getattro*/
     0,                                        /*tp_setattro*/
