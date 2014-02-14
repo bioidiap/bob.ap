@@ -6,11 +6,12 @@
 
 import os, sys
 import unittest
-import bob
 import numpy
 import array
 import math
 import time
+
+from . import Ceps
 
 #############################################################################
 # Tests blitz-based extrapolation implementation with values returned
@@ -77,8 +78,10 @@ def hamming_window(vector, hamming_kernel, win_length):
   return vector
 
 def log_filter_bank(x, n_filters, p_index, win_size):
+  from xbob.sp import fft
+
   x1 = numpy.array(x, dtype=numpy.complex128)
-  complex_ = bob.sp.fft(x1)
+  complex_ = fft(x1)
   for i in range(0, int(win_size / 2) + 1):
     re = complex_[i].real
     im = complex_[i].imag
@@ -116,13 +119,13 @@ def cepstral_features_extraction(obj, rate_wavsample, win_length_ms, win_shift_m
   #########################
   ## Initialisation part ##
   #########################
-  c = bob.ap.Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef)
+  c = Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef)
   c.dct_norm = dct_norm
   c.mel_scale = mel_scale
   c.with_energy = with_energy
   c.with_delta = with_delta
   c.with_delta_delta = with_delta_delta
-  #ct = bob.ap.TestCeps(c)
+  #ct = TestCeps(c)
 
   sf = rate_wavsample[0]
   data = rate_wavsample[1]
@@ -340,12 +343,12 @@ def cepstral_features_extraction(obj, rate_wavsample, win_length_ms, win_shift_m
 
 def cepstral_comparison_run(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
                                pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta):
-  c = bob.ap.Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
+  c = Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
   c.with_energy = with_energy
   c.with_delta = with_delta
   if c.with_delta:
     c.with_delta_delta = with_delta_delta
-  #ct = bob.ap.TestCeps(c)
+  #ct = TestCeps(c)
   A = c(rate_wavsample[1])
   B = cepstral_features_extraction(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm,
         f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
@@ -442,9 +445,9 @@ class CepsTest(unittest.TestCase):
                                pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
     # Test comparison operators and copy constructor
-    c0 = bob.ap.Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
-    c1 = bob.ap.Ceps(c0)
-    c2 = bob.ap.Ceps(c1)
+    c0 = Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
+    c1 = Ceps(c0)
+    c2 = Ceps(c1)
     c2.win_length_ms = 27.
     self.assertTrue( c0 == c1)
     self.assertFalse(c0 != c1)
