@@ -6,11 +6,12 @@
 
 import os, sys
 import unittest
-import bob
 import numpy
 import array
 import math
 import time
+
+from . import Spectrogram
 
 #############################################################################
 # Tests blitz-based extrapolation implementation with values returned
@@ -77,8 +78,10 @@ def hamming_window(vector, hamming_kernel, win_length):
   return vector
 
 def log_filter_bank(x, n_filters, p_index, win_size):
+  from xbob.sp import fft
+
   x1 = numpy.array(x, dtype=numpy.complex128)
-  complex_ = bob.sp.fft(x1)
+  complex_ = fft(x1)
   for i in range(0, int(win_size / 2) + 1):
     re = complex_[i].real
     im = complex_[i].imag
@@ -117,7 +120,7 @@ def spectrogram_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_
   ## Initialisation part ##
   #########################
 
-  c = bob.ap.Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, f_min, f_max, pre_emphasis_coef)
+  c = Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, f_min, f_max, pre_emphasis_coef)
 
   c.mel_scale = mel_scale
 
@@ -214,7 +217,7 @@ def spectrogram_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_
 
 def spectrogram_comparison_run(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
                                pre_emphasis_coef, mel_scale):
-  c = bob.ap.Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, f_min, f_max, pre_emphasis_coef, mel_scale)
+  c = Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, f_min, f_max, pre_emphasis_coef, mel_scale)
 
   A = c(rate_wavsample[1])
   B = spectrogram_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps,

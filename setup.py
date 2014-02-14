@@ -40,6 +40,7 @@ setup(
         [
           "xbob/ap/energy.cpp",
           "xbob/ap/frame_extractor.cpp",
+          "xbob/ap/spectrogram.cpp",
           "xbob/ap/main.cpp",
           ],
         packages = packages,

@@ -56,7 +56,7 @@ static int PyBobApFrameExtractor_InitCopy
 (PyBobApFrameExtractorObject* self, PyObject* args, PyObject* kwds) {
 
   /* Parses input arguments in a single shot */
-  static const char* const_kwlist[] = {"sampling_frequency, ", 0};
+  static const char* const_kwlist[] = {"other", 0};
   static char** kwlist = const_cast<char**>(const_kwlist);
 
   PyObject* other = 0;

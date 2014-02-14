@@ -37,6 +37,9 @@ static PyObject* create_module (void) {
   PyBobApEnergy_Type.tp_base = &PyBobApFrameExtractor_Type;
   if (PyType_Ready(&PyBobApEnergy_Type) < 0) return 0;
 
+  PyBobApSpectrogram_Type.tp_base = &PyBobApEnergy_Type;
+  if (PyType_Ready(&PyBobApSpectrogram_Type) < 0) return 0;
+
 # if PY_VERSION_HEX >= 0x03000000
   PyObject* m = PyModule_Create(&module_definition);
 # else
@@ -54,6 +57,9 @@ static PyObject* create_module (void) {
 
   Py_INCREF(&PyBobApEnergy_Type);
   if (PyModule_AddObject(m, "Energy", (PyObject *)&PyBobApEnergy_Type) < 0) return 0;
+
+  Py_INCREF(&PyBobApSpectrogram_Type);
+  if (PyModule_AddObject(m, "Spectrogram", (PyObject *)&PyBobApSpectrogram_Type) < 0) return 0;
 
   /* imports xbob.blitz C-API + dependencies */
   if (import_xbob_blitz() < 0) return 0;
