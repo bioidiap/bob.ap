@@ -57,7 +57,6 @@ dct_norm\n\
   [bool] A factor by which the cepstral coefficients are\n\
   multiplied\n\
 \n\
-\n\
 other\n\
   [Ceps] an object of which is or inherits from ``Ceps``\n\
   that will be deep-copied into a new instance.\n\
