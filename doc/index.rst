@@ -17,6 +17,7 @@ Reference
 .. toctree::
    :maxdepth: 2
 
+   guide
    py_api
 
 Indices and tables
