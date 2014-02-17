@@ -5,11 +5,11 @@
 # Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
 
 import os, sys
-import unittest
 import numpy
 import array
 import math
 import time
+import nose.tools
 
 from . import Ceps
 
@@ -114,7 +114,7 @@ def dct_transform(filters, n_filters, dct_kernel, n_ceps, dct_norm):
 
   return ceps
 
-def cepstral_features_extraction(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+def cepstral_features_extraction(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
                                pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta):
   #########################
   ## Initialisation part ##
@@ -341,7 +341,7 @@ def cepstral_features_extraction(obj, rate_wavsample, win_length_ms, win_shift_m
 
   return data
 
-def cepstral_comparison_run(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+def cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
                                pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta):
   c = Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
   c.with_energy = with_energy
@@ -350,106 +350,103 @@ def cepstral_comparison_run(obj, rate_wavsample, win_length_ms, win_shift_ms, n_
     c.with_delta_delta = with_delta_delta
   #ct = TestCeps(c)
   A = c(rate_wavsample[1])
-  B = cepstral_features_extraction(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm,
+  B = cepstral_features_extraction(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm,
         f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
   diff=numpy.sum(numpy.sum((A-B)*(A-B)))
-  obj.assertAlmostEqual(diff, 0., 7, "Error in Ceps Analysis")
+  numpy.testing.assert_allclose(diff, 0., rtol=1e-07, atol=1e-05)
 
 ##################### Unit Tests ##################
-class CepsTest(unittest.TestCase):
-  """Test the Cepstral feature extraction"""
+def test_cepstral():
+  import pkg_resources
+  rate_wavsample = _read(pkg_resources.resource_filename(__name__, os.path.join('data', 'sample.wav')))
 
-  def test_cepstral(self):
-    import pkg_resources
-    rate_wavsample = _read(pkg_resources.resource_filename(__name__, os.path.join('data', 'sample.wav')))
+  win_length_ms = 20
+  win_shift_ms = 10
+  n_filters = 24
+  n_ceps = 19
+  f_min = 0.
+  f_max = 4000.
+  delta_win = 2
+  pre_emphasis_coef = 0.97
+  dct_norm = True
+  mel_scale = True
+  with_energy = True
+  with_delta = True
+  with_delta_delta = True
 
-    win_length_ms = 20
-    win_shift_ms = 10
-    n_filters = 24
-    n_ceps = 19
-    f_min = 0.
-    f_max = 4000.
-    delta_win = 2
-    pre_emphasis_coef = 0.97
-    dct_norm = True
-    mel_scale = True
-    with_energy = True
-    with_delta = True
-    with_delta_delta = True
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying win_length_ms
+  win_length_ms = 30
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying win_shift_ms
+  win_shift_ms = 15
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying win_length_ms
-    win_length_ms = 30
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
-    # Varying win_shift_ms
-    win_shift_ms = 15
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying n_filters
+  n_filters = 20
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying n_filters
-    n_filters = 20
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying n_ceps
+  n_ceps = 12
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying n_ceps
-    n_ceps = 12
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying f_min
+  f_min = 300.
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying f_min
-    f_min = 300.
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying f_max
+  f_max = 3300.
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying f_max
-    f_max = 3300.
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying delta_win
+  delta_win = 5
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying delta_win
-    delta_win = 5
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying pre_emphasis_coef
+  pre_emphasis_coef = 0.7
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying pre_emphasis_coef
-    pre_emphasis_coef = 0.7
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying dct_norm
+  dct_norm = False
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying dct_norm
-    dct_norm = False
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying mel_scale : linear scale
+  mel_scale = False
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying mel_scale : linear scale
-    mel_scale = False
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying with_energy
+  with_energy = False
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying with_energy
-    with_energy = False
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying with_delta
+  with_delta = False
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying with_delta
-    with_delta = False
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
+  # Varying with_delta_delta
+  with_delta_delta = False
+  cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+                             pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
 
-    # Varying with_delta_delta
-    with_delta_delta = False
-    cepstral_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
-
-    # Test comparison operators and copy constructor
-    c0 = Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
-    c1 = Ceps(c0)
-    c2 = Ceps(c1)
-    c2.win_length_ms = 27.
-    self.assertTrue( c0 == c1)
-    self.assertFalse(c0 != c1)
-    self.assertFalse(c0 == c2)
-    self.assertTrue( c0 != c2)
+  # Test comparison operators and copy constructor
+  c0 = Ceps(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
+  c1 = Ceps(c0)
+  c2 = Ceps(c1)
+  c2.win_length_ms = 27.
+  assert c0 == c1
+  assert not (c0 != c1)
+  assert not (c0 == c2)
+  assert c0 != c2

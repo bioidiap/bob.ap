@@ -123,8 +123,8 @@ static int PyBobApSpectrogram_InitParameters
   double win_shift_ms = 10.;
   Py_ssize_t n_filters = 24;
   double f_min = 0.;
-  double f_max = 0.;
-  double pre_emphasis_coeff = 0.;
+  double f_max = 4000.;
+  double pre_emphasis_coeff = 0.95;
   PyObject* mel_scale = Py_True;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddndddO", kwlist,
         &sampling_frequency, &win_length_ms, &win_shift_ms,
@@ -201,14 +201,17 @@ static int PyBobApSpectrogram_Init(PyBobApSpectrogramObject* self,
 }
 
 static PyObject* PyBobApSpectrogram_Repr(PyBobApSpectrogramObject* self) {
+  static const int MAXSIZE = 256;
+  char buffer[MAXSIZE];
   Py_ssize_t n_filters = self->cxx->getNFilters();
+  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f, n_filters=%" PY_FORMAT_SIZE_T "d, f_min=%f, f_max=%f, pre_emphasis_coeff=%f, mel_scale=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), n_filters, self->cxx->getFMin(), self->cxx->getFMax(), self->cxx->getPreEmphasisCoeff(), self->cxx->getMelScale()?"True":"False");
   return
 # if PY_VERSION_HEX >= 0x03000000
-  PyUnicode_FromFormat
+  PyUnicode_FromStringAndSize
 # else
-  PyString_FromFormat
+  PyString_FromStringAndSize
 # endif
-  ("%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f, n_filters=%" PY_FORMAT_SIZE_T "d, f_min=%f, f_max=%f, pre_emphasis_coeff=%f, mel_scale=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), n_filters, self->cxx->getFMin(), self->cxx->getFMax(), self->cxx->getPreEmphasisCoeff(), self->cxx->getMelScale()?"True":"False");
+    (buffer, (count<=MAXSIZE)?count:MAXSIZE);
 }
 
 static PyObject* PyBobApSpectrogram_RichCompare (PyBobApSpectrogramObject* self,

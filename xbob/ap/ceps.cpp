@@ -71,9 +71,9 @@ int PyBobApCeps_Check(PyObject* o) {
 
 static void PyBobApCeps_Delete (PyBobApCepsObject* o) {
 
-  o->parent.parent.parent.cxx = 0;
-  o->parent.parent.cxx = 0;
-  o->parent.cxx = 0;
+  o->parent.parent.parent.cxx = 0; // FrameExtractor
+  o->parent.parent.cxx = 0; // Energy
+  o->parent.cxx = 0; // Spectrogram
   delete o->cxx;
   Py_TYPE(o)->tp_free((PyObject*)o);
 
@@ -125,10 +125,13 @@ static int PyBobApCeps_InitParameters
     "win_length_ms",
     "win_shift_ms",
     "n_filters",
+    "n_ceps",
     "f_min",
     "f_max",
+    "delta_win",
     "pre_emphasis_coeff",
     "mel_scale",
+    "dct_norm",
     0};
   static char** kwlist = const_cast<char**>(const_kwlist);
 
@@ -136,25 +139,31 @@ static int PyBobApCeps_InitParameters
   double win_length_ms = 20.;
   double win_shift_ms = 10.;
   Py_ssize_t n_filters = 24;
+  Py_ssize_t n_ceps = 19;
   double f_min = 0.;
-  double f_max = 0.;
-  double pre_emphasis_coeff = 0.;
+  double f_max = 4000.;
+  Py_ssize_t delta_win = 2;
+  double pre_emphasis_coeff = 0.95;
   PyObject* mel_scale = Py_True;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddndddO", kwlist,
-        &sampling_frequency, &win_length_ms, &win_shift_ms,
-        &n_filters, &f_min, &f_max, &pre_emphasis_coeff, &mel_scale))
+  PyObject* dct_norm = Py_True;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddnnddndOO", kwlist,
+        &sampling_frequency, &win_length_ms, &win_shift_ms, &n_filters,
+        &n_ceps, &f_min, &f_max, &delta_win, &pre_emphasis_coeff,
+        &mel_scale, &dct_norm))
     return -1;
 
   bool mel_scale_ = PyObject_IsTrue(mel_scale);
+  bool dct_norm_ = PyObject_IsTrue(dct_norm);
 
   try {
     self->cxx = new bob::ap::Ceps(sampling_frequency,
-        win_length_ms, win_shift_ms, n_filters, f_min, f_max,
-        pre_emphasis_coeff, mel_scale_);
+        win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max,
+        delta_win, pre_emphasis_coeff, mel_scale_, dct_norm_);
     if (!self->cxx) {
       PyErr_Format(PyExc_MemoryError, "cannot create new object of type `%s' - no more memory", Py_TYPE(self)->tp_name);
       return -1;
     }
+    self->parent.parent.parent.cxx = self->cxx;
     self->parent.parent.cxx = self->cxx;
     self->parent.cxx = self->cxx;
   }
@@ -215,14 +224,19 @@ static int PyBobApCeps_Init(PyBobApCepsObject* self,
 }
 
 static PyObject* PyBobApCeps_Repr(PyBobApCepsObject* self) {
+  static const int MAXSIZE = 256;
+  char buffer[MAXSIZE];
   Py_ssize_t n_filters = self->cxx->getNFilters();
+  Py_ssize_t n_ceps = self->cxx->getNCeps();
+  Py_ssize_t delta_win = self->cxx->getDeltaWin();
+  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f, n_filters=%" PY_FORMAT_SIZE_T "d, n_ceps=%" PY_FORMAT_SIZE_T "d, f_min=%f, f_max=%f, delta_win=%" PY_FORMAT_SIZE_T "d, pre_emphasis_coeff=%f, mel_scale=%s, dct_norm=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), n_filters, n_ceps, self->cxx->getFMin(), self->cxx->getFMax(), delta_win, self->cxx->getPreEmphasisCoeff(), self->cxx->getMelScale()?"True":"False", self->cxx->getDctNorm()?"True":"False");
   return
 # if PY_VERSION_HEX >= 0x03000000
-  PyUnicode_FromFormat
+  PyUnicode_FromStringAndSize
 # else
-  PyString_FromFormat
+  PyString_FromStringAndSize
 # endif
-  ("%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f, n_filters=%" PY_FORMAT_SIZE_T "d, f_min=%f, f_max=%f, pre_emphasis_coeff=%f, mel_scale=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), n_filters, self->cxx->getFMin(), self->cxx->getFMax(), self->cxx->getPreEmphasisCoeff(), self->cxx->getMelScale()?"True":"False");
+    (buffer, (count<=MAXSIZE)?count:MAXSIZE);
 }
 
 static PyObject* PyBobApCeps_RichCompare (PyBobApCepsObject* self,
@@ -252,21 +266,21 @@ static PyObject* PyBobApCeps_RichCompare (PyBobApCepsObject* self,
 
 }
 
-PyDoc_STRVAR(s_n_filters_str, "n_filters");
-PyDoc_STRVAR(s_n_filters_doc,
-"The number of filter bands"
+PyDoc_STRVAR(s_n_ceps_str, "n_ceps");
+PyDoc_STRVAR(s_n_ceps_doc,
+"The number of cepstral coefficients"
 );
 
-static PyObject* PyBobApCeps_GetNFilters
+static PyObject* PyBobApCeps_GetNCeps
 (PyBobApCepsObject* self, void* /*closure*/) {
-  return Py_BuildValue("n", self->cxx->getNFilters());
+  return Py_BuildValue("n", self->cxx->getNCeps());
 }
 
-static int PyBobApCeps_SetNFilters
+static int PyBobApCeps_SetNCeps
 (PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
 
   if (!PyNumber_Check(o)) {
-    PyErr_Format(PyExc_TypeError, "`%s' n_filters can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
+    PyErr_Format(PyExc_TypeError, "`%s' n_ceps can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
 
@@ -274,14 +288,14 @@ static int PyBobApCeps_SetNFilters
   if (PyErr_Occurred()) return -1;
 
   try {
-    self->cxx->setNFilters(n);
+    self->cxx->setNCeps(n);
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
     return -1;
   }
   catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot reset `n_filters' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `n_ceps' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
     return -1;
   }
 
@@ -289,36 +303,37 @@ static int PyBobApCeps_SetNFilters
 
 }
 
-PyDoc_STRVAR(s_f_min_str, "f_min");
-PyDoc_STRVAR(s_f_min_doc,
-"The minimum frequency of the filter bank"
+PyDoc_STRVAR(s_delta_win_str, "delta_win");
+PyDoc_STRVAR(s_delta_win_doc,
+"The integer delta value used for computing the first and\n\
+second order derivatives"
 );
 
-static PyObject* PyBobApCeps_GetFMin
+static PyObject* PyBobApCeps_GetDeltaWin
 (PyBobApCepsObject* self, void* /*closure*/) {
-  return Py_BuildValue("d", self->cxx->getFMin());
+  return Py_BuildValue("n", self->cxx->getDeltaWin());
 }
 
-static int PyBobApCeps_SetFMin
+static int PyBobApCeps_SetDeltaWin
 (PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
 
   if (!PyNumber_Check(o)) {
-    PyErr_Format(PyExc_TypeError, "`%s' f_min can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
+    PyErr_Format(PyExc_TypeError, "`%s' delta_win can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
 
-  double d = PyFloat_AsDouble(o);
+  Py_ssize_t n = PyNumber_AsSsize_t(o, PyExc_OverflowError);
   if (PyErr_Occurred()) return -1;
 
   try {
-    self->cxx->setFMin(d);
+    self->cxx->setDeltaWin(n);
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
     return -1;
   }
   catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot reset `f_min' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `delta_win' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
     return -1;
   }
 
@@ -326,107 +341,32 @@ static int PyBobApCeps_SetFMin
 
 }
 
-PyDoc_STRVAR(s_f_max_str, "f_max");
-PyDoc_STRVAR(s_f_max_doc,
-"The maximum frequency of the filter bank"
+PyDoc_STRVAR(s_dct_norm_str, "dct_norm");
+PyDoc_STRVAR(s_dct_norm_doc,
+"A factor by which the cepstral coefficients are multiplied"
 );
 
-static PyObject* PyBobApCeps_GetFMax
+static PyObject* PyBobApCeps_GetDctNorm
 (PyBobApCepsObject* self, void* /*closure*/) {
-  return Py_BuildValue("d", self->cxx->getFMax());
-}
-
-static int PyBobApCeps_SetFMax
-(PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
-
-  if (!PyNumber_Check(o)) {
-    PyErr_Format(PyExc_TypeError, "`%s' f_max can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
-    return -1;
-  }
-
-  double d = PyFloat_AsDouble(o);
-  if (PyErr_Occurred()) return -1;
-
-  try {
-    self->cxx->setFMax(d);
-  }
-  catch (std::exception& ex) {
-    PyErr_SetString(PyExc_RuntimeError, ex.what());
-    return -1;
-  }
-  catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot reset `f_max' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
-    return -1;
-  }
-
-  return 0;
-
-}
-
-PyDoc_STRVAR(s_pre_emphasis_coeff_str, "pre_emphasis_coeff");
-PyDoc_STRVAR(s_pre_emphasis_coeff_doc,
-"The coefficient used for the pre-emphasis"
-);
-
-static PyObject* PyBobApCeps_GetPreEmphasisCoeff
-(PyBobApCepsObject* self, void* /*closure*/) {
-  return Py_BuildValue("d", self->cxx->getPreEmphasisCoeff());
-}
-
-static int PyBobApCeps_SetPreEmphasisCoeff
-(PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
-
-  if (!PyNumber_Check(o)) {
-    PyErr_Format(PyExc_TypeError, "`%s' pre_emphasis_coeff can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
-    return -1;
-  }
-
-  double d = PyFloat_AsDouble(o);
-  if (PyErr_Occurred()) return -1;
-
-  try {
-    self->cxx->setPreEmphasisCoeff(d);
-  }
-  catch (std::exception& ex) {
-    PyErr_SetString(PyExc_RuntimeError, ex.what());
-    return -1;
-  }
-  catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot reset `pre_emphasis_coeff' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
-    return -1;
-  }
-
-  return 0;
-
-}
-
-PyDoc_STRVAR(s_mel_scale_str, "mel_scale");
-PyDoc_STRVAR(s_mel_scale_doc,
-"Tells whether cepstral features are extracted on a linear\n\
-(LFCC) or Mel (MFCC) scale\n\
-");
-
-static PyObject* PyBobApCeps_GetMelScale
-(PyBobApCepsObject* self, void* /*closure*/) {
-  if (self->cxx->getMelScale()) Py_RETURN_TRUE;
+  if (self->cxx->getDctNorm()) Py_RETURN_TRUE;
   else Py_RETURN_FALSE;
 }
 
-static int PyBobApCeps_SetMelScale
+static int PyBobApCeps_SetDctNorm
 (PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
 
   bool b = PyObject_IsTrue(o);
   if (PyErr_Occurred()) return -1;
 
   try {
-    self->cxx->setMelScale(b);
+    self->cxx->setDctNorm(b);
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
     return -1;
   }
   catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot reset `mel_scale' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `dct_norm' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
     return -1;
   }
 
@@ -434,32 +374,32 @@ static int PyBobApCeps_SetMelScale
 
 }
 
-PyDoc_STRVAR(s_energy_filter_str, "energy_filter");
-PyDoc_STRVAR(s_energy_filter_doc,
-"Tells whether we use the energy or the square root of the energy"
+PyDoc_STRVAR(s_with_energy_str, "with_energy");
+PyDoc_STRVAR(s_with_energy_doc,
+"Tells if we add the energy to the output feature"
 );
 
-static PyObject* PyBobApCeps_GetEnergyFilter
+static PyObject* PyBobApCeps_GetWithEnergy
 (PyBobApCepsObject* self, void* /*closure*/) {
-  if (self->cxx->getEnergyFilter()) Py_RETURN_TRUE;
+  if (self->cxx->getWithEnergy()) Py_RETURN_TRUE;
   else Py_RETURN_FALSE;
 }
 
-static int PyBobApCeps_SetEnergyFilter
+static int PyBobApCeps_SetWithEnergy
 (PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
 
   bool b = PyObject_IsTrue(o);
   if (PyErr_Occurred()) return -1;
 
   try {
-    self->cxx->setEnergyFilter(b);
+    self->cxx->setWithEnergy(b);
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
     return -1;
   }
   catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot reset `energy_filter' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `with_energy' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
     return -1;
   }
 
@@ -467,32 +407,32 @@ static int PyBobApCeps_SetEnergyFilter
 
 }
 
-PyDoc_STRVAR(s_log_filter_str, "log_filter");
-PyDoc_STRVAR(s_log_filter_doc,
-"Tells whether we use the log triangular filter or the triangular filter"
+PyDoc_STRVAR(s_with_delta_str, "with_delta");
+PyDoc_STRVAR(s_with_delta_doc,
+"Tells if we add the first derivatives to the output feature"
 );
 
-static PyObject* PyBobApCeps_GetLogFilter
+static PyObject* PyBobApCeps_GetWithDelta
 (PyBobApCepsObject* self, void* /*closure*/) {
-  if (self->cxx->getLogFilter()) Py_RETURN_TRUE;
+  if (self->cxx->getWithDelta()) Py_RETURN_TRUE;
   else Py_RETURN_FALSE;
 }
 
-static int PyBobApCeps_SetLogFilter
+static int PyBobApCeps_SetWithDelta
 (PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
 
   bool b = PyObject_IsTrue(o);
   if (PyErr_Occurred()) return -1;
 
   try {
-    self->cxx->setLogFilter(b);
+    self->cxx->setWithDelta(b);
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
     return -1;
   }
   catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot reset `log_filter' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `with_delta' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
     return -1;
   }
 
@@ -500,32 +440,32 @@ static int PyBobApCeps_SetLogFilter
 
 }
 
-PyDoc_STRVAR(s_energy_bands_str, "energy_bands");
-PyDoc_STRVAR(s_energy_bands_doc,
-"Tells whether we compute a ceps or energy bands"
+PyDoc_STRVAR(s_with_delta_delta_str, "with_delta_delta");
+PyDoc_STRVAR(s_with_delta_delta_doc,
+"Tells if we add the second derivatives to the output feature"
 );
 
-static PyObject* PyBobApCeps_GetEnergyBands
+static PyObject* PyBobApCeps_GetWithDeltaDelta
 (PyBobApCepsObject* self, void* /*closure*/) {
-  if (self->cxx->getEnergyBands()) Py_RETURN_TRUE;
+  if (self->cxx->getWithDeltaDelta()) Py_RETURN_TRUE;
   else Py_RETURN_FALSE;
 }
 
-static int PyBobApCeps_SetEnergyBands
+static int PyBobApCeps_SetWithDeltaDelta
 (PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
 
   bool b = PyObject_IsTrue(o);
   if (PyErr_Occurred()) return -1;
 
   try {
-    self->cxx->setEnergyBands(b);
+    self->cxx->setWithDeltaDelta(b);
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
     return -1;
   }
   catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot reset `energy_bands' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `with_delta_delta' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
     return -1;
   }
 
@@ -535,59 +475,45 @@ static int PyBobApCeps_SetEnergyBands
 
 static PyGetSetDef PyBobApCeps_getseters[] = {
     {
-      s_n_filters_str,
-      (getter)PyBobApCeps_GetNFilters,
-      (setter)PyBobApCeps_SetNFilters,
-      s_n_filters_doc,
+      s_n_ceps_str,
+      (getter)PyBobApCeps_GetNCeps,
+      (setter)PyBobApCeps_SetNCeps,
+      s_n_ceps_doc,
       0
     },
     {
-      s_f_min_str,
-      (getter)PyBobApCeps_GetFMin,
-      (setter)PyBobApCeps_SetFMin,
-      s_f_min_doc,
+      s_delta_win_str,
+      (getter)PyBobApCeps_GetDeltaWin,
+      (setter)PyBobApCeps_SetDeltaWin,
+      s_delta_win_doc,
       0
     },
     {
-      s_f_max_str,
-      (getter)PyBobApCeps_GetFMax,
-      (setter)PyBobApCeps_SetFMax,
-      s_f_max_doc,
+      s_dct_norm_str,
+      (getter)PyBobApCeps_GetDctNorm,
+      (setter)PyBobApCeps_SetDctNorm,
+      s_dct_norm_doc,
       0
     },
     {
-      s_pre_emphasis_coeff_str,
-      (getter)PyBobApCeps_GetPreEmphasisCoeff,
-      (setter)PyBobApCeps_SetPreEmphasisCoeff,
-      s_pre_emphasis_coeff_doc,
+      s_with_energy_str,
+      (getter)PyBobApCeps_GetWithEnergy,
+      (setter)PyBobApCeps_SetWithEnergy,
+      s_with_energy_doc,
       0
     },
     {
-      s_mel_scale_str,
-      (getter)PyBobApCeps_GetMelScale,
-      (setter)PyBobApCeps_SetMelScale,
-      s_mel_scale_doc,
+      s_with_delta_str,
+      (getter)PyBobApCeps_GetWithDelta,
+      (setter)PyBobApCeps_SetWithDelta,
+      s_with_delta_doc,
       0
     },
     {
-      s_energy_filter_str,
-      (getter)PyBobApCeps_GetEnergyFilter,
-      (setter)PyBobApCeps_SetEnergyFilter,
-      s_energy_filter_doc,
-      0
-    },
-    {
-      s_log_filter_str,
-      (getter)PyBobApCeps_GetLogFilter,
-      (setter)PyBobApCeps_SetLogFilter,
-      s_log_filter_doc,
-      0
-    },
-    {
-      s_energy_bands_str,
-      (getter)PyBobApCeps_GetEnergyBands,
-      (setter)PyBobApCeps_SetEnergyBands,
-      s_energy_bands_doc,
+      s_with_delta_delta_str,
+      (getter)PyBobApCeps_GetWithDeltaDelta,
+      (setter)PyBobApCeps_SetWithDeltaDelta,
+      s_with_delta_delta_doc,
       0
     },
     {0}  /* Sentinel */

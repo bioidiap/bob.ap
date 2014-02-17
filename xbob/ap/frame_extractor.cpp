@@ -167,13 +167,16 @@ static int PyBobApFrameExtractor_Init(PyBobApFrameExtractorObject* self,
 }
 
 static PyObject* PyBobApFrameExtractor_Repr(PyBobApFrameExtractorObject* self) {
+  static const int MAXSIZE = 256;
+  char buffer[MAXSIZE];
+  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs());
   return
 # if PY_VERSION_HEX >= 0x03000000
-  PyUnicode_FromFormat
+  PyUnicode_FromStringAndSize
 # else
-  PyString_FromFormat
+  PyString_FromStringAndSize
 # endif
-  ("%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs());
+    (buffer, (count<=MAXSIZE)?count:MAXSIZE);
 }
 
 static PyObject* PyBobApFrameExtractor_RichCompare (PyBobApFrameExtractorObject* self,
