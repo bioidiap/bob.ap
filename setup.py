@@ -31,7 +31,7 @@ setup(
       'xbob.sp', # for testing
     ],
 
-    nameapace_packages=[
+    namespace_packages=[
       "xbob",
       ],
 

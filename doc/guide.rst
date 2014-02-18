@@ -13,7 +13,7 @@
   import scipy.io.wavfile
 
   from pkg_resources import resource_filename
-  wave_path = resource_filename('xbob.ap', os.path.join('data', f))
+  wave_path = resource_filename('xbob.ap', os.path.join('data', 'sample.wav'))
 
   sys.stdout =  open(os.devnull, 'w')
   rate, signal = scipy.io.wavfile.read(str(wave_path))
