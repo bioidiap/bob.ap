@@ -4,20 +4,17 @@
 
 .. testsetup:: aptest
 
-  import bob
-  import numpy
-  import math
   import os
-
-  def F(m, f):
-    from pkg_resources import resource_filename
-    return resource_filename('bob.%s.test' % m, os.path.join('data', f))
-
-  wave_path = F('ap', 'sample.wav')
-
+  import sys
+  import math
+  import numpy
+  import xbob.ap
 
   import scipy.io.wavfile
-  import sys
+
+  from pkg_resources import resource_filename
+  wave_path = resource_filename('xbob.ap', os.path.join('data', f))
+
   sys.stdout =  open(os.devnull, 'w')
   rate, signal = scipy.io.wavfile.read(str(wave_path))
   sys.stdout = sys.__stdout__
@@ -69,7 +66,7 @@ LFCC and MFCC Extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The LFCC and MFCC coefficients can be extracted from a audio signal by using
-:py:func:`bob.ap.Ceps`. To do so, several parameters can be precised by the
+:py:func:`xbob.ap.Ceps`. To do so, several parameters can be precised by the
 user. Typically, these are precised in a configuration file. The following
 values are the default ones:
 
@@ -87,13 +84,13 @@ values are the default ones:
   >>> dct_norm = True # A factor by which the cepstral coefficients are multiplied
   >>> mel_scale = True # Tell whether cepstral features are extracted on a linear (LFCC) or Mel (MFCC) scale
 
-Once the parameters are precised, :py:func:`bob.ap.Ceps` can be called as
+Once the parameters are precised, :py:func:`xbob.ap.Ceps` can be called as
 follows:
 
 .. doctest:: aptest
   :options: +NORMALIZE_WHITESPACE
 
-  >>> c = bob.ap.Ceps(rate, win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
+  >>> c = xbob.ap.Ceps(rate, win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, dct_norm)
   >>> signal = numpy.cast['float'](signal) # vector should be in **float**
   >>> mfcc = c(signal)
   >>> print(len(mfcc))
