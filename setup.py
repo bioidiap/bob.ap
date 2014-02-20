@@ -29,6 +29,7 @@ setup(
       'setuptools',
       'xbob.blitz',
       'xbob.sp', # for testing
+      'scipy', # for testing
     ],
 
     namespace_packages=[
