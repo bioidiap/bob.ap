@@ -353,7 +353,7 @@ def cepstral_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filte
   B = cepstral_features_extraction(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm,
         f_min, f_max, delta_win, pre_emphasis_coef, mel_scale, with_energy, with_delta, with_delta_delta)
   diff=numpy.sum(numpy.sum((A-B)*(A-B)))
-  numpy.testing.assert_allclose(diff, 0., rtol=1e-07, atol=1e-05)
+  assert numpy.allclose(diff, 0., rtol=1e-07, atol=1e-05)
 
 ##################### Unit Tests ##################
 def test_cepstral():
