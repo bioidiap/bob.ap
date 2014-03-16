@@ -4,118 +4,15 @@
 #
 # Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
 
-import os, sys
-import unittest
+import os
 import numpy
-import array
 import math
-import time
+import pkg_resources
 
 from . import Spectrogram
+from .test_utils import *
 
-#############################################################################
-# Tests blitz-based extrapolation implementation with values returned
-#############################################################################
-
-########################## Values used for the computation ##################
-eps = 1e-3
-
-#############################################################################
-numpy.set_printoptions(precision=2, threshold=numpy.nan, linewidth=200)
-
-def _read(filename):
-  """Read video.FrameContainer containing preprocessed frames"""
-
-  fileName, fileExtension = os.path.splitext(filename)
-  wav_filename = filename
-  import scipy.io.wavfile
-  rate, data = scipy.io.wavfile.read(str(wav_filename)) # the data is read in its native format
-  if data.dtype =='int16':
-    data = numpy.cast['float'](data)
-  return [rate,data]
-
-
-def compare(v1, v2, width):
-  return abs(v1-v2) <= width
-
-def mel_python(f):
-  import math
-  return 2595.0*math.log10(1.+f/700.0)
-
-def mel_inv_python(value):
-  return 700.0 * (10 ** (value / 2595.0) - 1)
-
-def sig_norm(win_length, frame, flag):
-  gain = 0.0
-  for i in range(win_length):
-    gain = gain + frame[i] * frame[i]
-
-  ENERGY_FLOOR = 1.0
-  if gain < ENERGY_FLOOR:
-    gain = math.log(ENERGY_FLOOR)
-  else:
-    gain = math.log(gain)
-
-  if(flag and gain != 0.0):
-    for i in range(win_length):
-      frame[i] = frame[i] / gain
-  return gain
-
-def pre_emphasis(frame, win_length, a):
-  if (a < 0.0) or (a >= 1.0):
-    print("Error: The emphasis coeff. should be between 0 and 1")
-  if (a == 0.0):
-    return frame
-  else:
-    for i in range(win_length - 1, 0, -1):
-      frame[i] = frame[i] - a * frame[i - 1]
-    frame[0] = (1. - a) * frame[0]
-  return frame
-
-def hamming_window(vector, hamming_kernel, win_length):
-  for i in range(win_length):
-    vector[i] = vector[i] * hamming_kernel[i]
-  return vector
-
-def log_filter_bank(x, n_filters, p_index, win_size):
-  from xbob.sp import fft
-
-  x1 = numpy.array(x, dtype=numpy.complex128)
-  complex_ = fft(x1)
-  for i in range(0, int(win_size / 2) + 1):
-    re = complex_[i].real
-    im = complex_[i].imag
-    x[i] = math.sqrt(re * re + im * im)
-  filters = log_triangular_bank(x, n_filters, p_index)
-  return filters, x
-
-def log_triangular_bank(data, n_filters, p_index):
-  a = 1.0 / (p_index[1:n_filters+2] - p_index[0:n_filters+1] + 1)
-  vec1 =  list(numpy.arange(p_index[i], p_index[i + 1]) for i in range(0, n_filters))
-  vec2 =  list(numpy.arange(p_index[i+1], p_index[i + 2] + 1) for i in range(0, n_filters))
-  res_ = numpy.array([(numpy.sum(data[vec1[i]]*(1.0 - a [i]* (p_index[i + 1]-(vec1[i])))) +
-          numpy.sum(data[vec2[i]] * (1.0 - a[i+1] * ( (vec2[i]) - p_index[i + 1]))))
-          for i in range(0, n_filters)])
-  FBANK_OUT_FLOOR = 1.0
-  filters = numpy.log(numpy.where(res_ < FBANK_OUT_FLOOR, FBANK_OUT_FLOOR, res_))
-  return filters
-
-def dct_transform(filters, n_filters, dct_kernel, n_ceps, dct_norm):
-  if dct_norm:
-    dct_coeff = numpy.sqrt(2.0/(n_filters))
-  else :
-    dct_coeff = 1.0
-
-  ceps = numpy.zeros(n_ceps + 1)
-  vec = numpy.array(range(1, n_filters + 1))
-  for i in range(1, n_ceps + 1):
-    ceps[i - 1] = numpy.sum(filters[vec - 1] * dct_kernel[i - 1][0:n_filters])
-    ceps[i - 1] = ceps[i - 1] * dct_coeff
-
-  return ceps
-
-def spectrogram_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max,
-                               pre_emphasis_coef, mel_scale):
+def spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, pre_emphasis_coef, mel_scale):
   #########################
   ## Initialisation part ##
   #########################
@@ -215,24 +112,20 @@ def spectrogram_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_
 
   return data
 
-def spectrogram_comparison_run(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
+def spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
                                pre_emphasis_coef, mel_scale):
   c = Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, f_min, f_max, pre_emphasis_coef, mel_scale)
 
   A = c(rate_wavsample[1])
-  B = spectrogram_computation(obj, rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps,
-        f_min, f_max, pre_emphasis_coef, mel_scale)
+  B = spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, pre_emphasis_coef, mel_scale)
 
   diff=numpy.sum(numpy.sum((A-B)*(A-B)))
-  obj.assertAlmostEqual(diff, 0., 7, "Error in Ceps Analysis")
+  assert numpy.allclose(diff, 0., rtol=1e-07, atol=1e-05)
 
 ##################### Unit Tests ##################
-class SpecTest(unittest.TestCase):
-  """Test the Spectral feature extraction"""
+def test_spectrogram():
 
-  def test_spectrogram(self):
-    import pkg_resources
-    rate_wavsample = _read(pkg_resources.resource_filename(__name__, os.path.join('data', 'sample.wav')))
+    rate_wavsample = read(pkg_resources.resource_filename(__name__, os.path.join('data', 'sample.wav')))
 
     win_length_ms = 20
     win_shift_ms = 10
@@ -244,6 +137,4 @@ class SpecTest(unittest.TestCase):
     pre_emphasis_coef = 0.97
     dct_norm = True
     mel_scale = True
-    spectrogram_comparison_run(self,rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale)
-
+    spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale)
