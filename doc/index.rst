@@ -11,8 +11,8 @@
 This module contains base functionality from Bob bound to Python, available in
 the C++ counter-part ``bob::ap``. It includes audio processing utilities.
 
-Reference
----------
+User Guide
+----------
 
 .. toctree::
    :maxdepth: 2
