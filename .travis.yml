@@ -21,7 +21,7 @@ before_install:
   - sudo apt-get install -qq bob-dev
   - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
   - pip install --upgrade pip setuptools
-  - pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel scipy$SCIPYSPEC sphinx nose; fi
+  - pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel scipy$SCIPYSPEC sphinx nose
 install:
   - "python bootstrap.py"
   - "./bin/buildout"
