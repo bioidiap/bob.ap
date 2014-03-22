@@ -1,5 +1,5 @@
 from ._library import *
-import version
+from . import version
 from .version import module as __version__
 
 # gets sphinx autodoc done right - don't remove it
