@@ -37,6 +37,13 @@ setup(
       ],
 
     ext_modules = [
+      Extension("xbob.ap.version",
+        [
+          "xbob/ap/version.cpp",
+          ],
+        packages = packages,
+        version = version,
+        ),
       Extension("xbob.ap._library",
         [
           "xbob/ap/energy.cpp",
