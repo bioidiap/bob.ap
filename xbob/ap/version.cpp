@@ -90,31 +90,13 @@ static PyObject* build_version_dictionary() {
 
   PyObject* retval = PyDict_New();
   if (!retval) return 0;
+  auto retval_ = make_safe(retval);
 
-  if (!dict_steal(retval, "Boost", boost_version())) {
-    Py_DECREF(retval);
-    return 0;
-  }
-
-  if (!dict_steal(retval, "Compiler", compiler_version())) {
-    Py_DECREF(retval);
-    return 0;
-  }
-
-  if (!dict_steal(retval, "Python", python_version())) {
-    Py_DECREF(retval);
-    return 0;
-  }
-
-  if (!dict_steal(retval, "Bob", bob_version())) {
-    Py_DECREF(retval);
-    return 0;
-  }
-
-  if (!dict_steal(retval, "NumPy", numpy_version())) {
-    Py_DECREF(retval);
-    return 0;
-  }
+  if (!dict_steal(retval, "Boost", boost_version())) return 0;
+  if (!dict_steal(retval, "Compiler", compiler_version())) return 0;
+  if (!dict_steal(retval, "Python", python_version())) return 0;
+  if (!dict_steal(retval, "Bob", bob_version())) return 0;
+  if (!dict_steal(retval, "NumPy", numpy_version())) return 0;
 
   return retval;
 }
