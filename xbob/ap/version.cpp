@@ -96,7 +96,7 @@ static PyObject* numpy_version() {
 }
 
 /**
- * Xbob.Blitz c/c++ api version
+ * xbob.blitz c/c++ api version
  */
 static PyObject* xbob_blitz_version() {
   return Py_BuildValue("{ss}", "api", BOOST_PP_STRINGIZE(XBOB_BLITZ_API_VERSION));
@@ -113,7 +113,7 @@ static PyObject* build_version_dictionary() {
   if (!dict_steal(retval, "Compiler", compiler_version())) return 0;
   if (!dict_steal(retval, "Python", python_version())) return 0;
   if (!dict_steal(retval, "NumPy", numpy_version())) return 0;
-  if (!dict_steal(retval, "Xbob.Blitz", xbob_blitz_version())) return 0;
+  if (!dict_steal(retval, "xbob.blitz", xbob_blitz_version())) return 0;
   if (!dict_steal(retval, "Bob", bob_version())) return 0;
 
   Py_INCREF(retval);
