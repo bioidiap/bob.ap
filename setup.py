@@ -15,7 +15,7 @@ setup(
     name='xbob.ap',
     version=version,
     description='Bindings for Bob\'s audio processing utilities',
-    url='http://github.com/anjos/xbob.ap',
+    url='http://github.com/bioidiap/xbob.ap',
     license='BSD',
     author='Andre Anjos',
     author_email='andre.anjos@idiap.ch',
