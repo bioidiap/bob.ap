@@ -8,6 +8,8 @@
  Bob's Audio Processing Routines
 =================================
 
+.. todolist::
+
 This module contains base functionality from Bob bound to Python, available in
 the C++ counter-part ``bob::ap``. It includes audio processing utilities.
 
