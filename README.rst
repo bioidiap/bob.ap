@@ -32,9 +32,9 @@ Documentation
 You can generate the documentation for this package, after installation, using
 Sphinx::
 
-  $ aphinx-build -b html doc aphinx
+  $ sphinx-build -b html doc sphinx
 
-This shall place in the directory ``aphinx``, the current version for the
+This shall place in the directory ``sphinx``, the current version for the
 documentation of the package.
 
 Testing
@@ -53,9 +53,9 @@ You can run a set of tests using the nose test runner::
    the centrally installed version of Bob, or build your own version of Python
    in which Bob <= 1.2.1 is not installed.
 
-You can run our documentation tests using aphinx itself::
+You can run our documentation tests using sphinx itself::
 
-  $ aphinx-build -b doctest doc aphinx
+  $ sphinx-build -b doctest doc sphinx
 
 You can test overall test coverage with::
 
