@@ -26,14 +26,14 @@ before_install:
   - pip install --upgrade pip setuptools
   - if [ -n "${NUMPYSPEC}" ]; then pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel numpy$NUMPYSPEC; fi
   - pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel scipy$SCIPYSPEC sphinx nose
-  - pip install coveralls
+  - pip install cpp-coveralls
 install:
   - "python bootstrap.py"
-  - "./bin/buildout"
+  - "CFLAGS=-coverage ./bin/buildout"
 script:
   - "./bin/python -c 'from xbob.ap import get_config; print(get_config())'"
   - "./bin/coverage run --source=xbob.ap ./bin/nosetests -sv"
   - "./bin/sphinx-build -b doctest doc sphinx"
   - "./bin/sphinx-build -b html doc sphinx"
 after_success:
-  - "coveralls"
+  - "coveralls --build-root=`pwd` --exclude=src"
