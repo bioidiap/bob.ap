@@ -5,11 +5,11 @@
  * @brief Bindings to the base class bob::ap::Energy
  */
 
-#include <xbob.blitz/cppapi.h>
-#include <xbob.blitz/cleanup.h>
+#include <bob.blitz/cppapi.h>
+#include <bob.blitz/cleanup.h>
 #include "types.h"
 
-PyDoc_STRVAR(s_energy_str, XBOB_EXT_MODULE_PREFIX ".Energy");
+PyDoc_STRVAR(s_energy_str, BOB_EXT_MODULE_PREFIX ".Energy");
 
 PyDoc_STRVAR(s_energy_doc,
 "Energy(sampling_frequency, [win_length_ms=20., [win_shift_ms=10.]]) -> new Energy\n\

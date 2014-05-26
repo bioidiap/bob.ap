@@ -5,11 +5,11 @@
  * @brief Bindings to the base class bob::ap::Ceps
  */
 
-#include <xbob.blitz/cppapi.h>
-#include <xbob.blitz/cleanup.h>
+#include <bob.blitz/cppapi.h>
+#include <bob.blitz/cleanup.h>
 #include "types.h"
 
-PyDoc_STRVAR(s_ceps_str, XBOB_EXT_MODULE_PREFIX ".Ceps");
+PyDoc_STRVAR(s_ceps_str, BOB_EXT_MODULE_PREFIX ".Ceps");
 
 PyDoc_STRVAR(s_ceps_doc,
 "Ceps(sampling_frequency, [win_length_ms=20., [win_shift_ms=10., [n_filters=24, [n_ceps=19, [f_min=0., [f_max=4000., [delta_win=2, [pre_emphasis_coeff=0.95, [mel_scale=True, [dct_norm=True]]]]]]]]]]) -> new Ceps\n\

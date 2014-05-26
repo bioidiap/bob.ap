@@ -8,7 +8,7 @@ import os
 import numpy
 import pkg_resources
 
-from xbob.sp import fft
+from bob.sp import fft
 
 from . import Ceps
 from .test_utils import *

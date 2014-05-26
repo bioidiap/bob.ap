@@ -4,18 +4,18 @@
 # Thu 30 Jan 08:45:49 2014 CET
 
 from setuptools import setup, find_packages, dist
-dist.Distribution(dict(setup_requires=['xbob.blitz']))
-from xbob.blitz.extension import Extension
+dist.Distribution(dict(setup_requires=['bob.blitz']))
+from bob.blitz.extension import Extension
 
 packages = ['bob-ap >= 1.2.2']
 version = '2.0.0a0'
 
 setup(
 
-    name='xbob.ap',
+    name='bob.ap',
     version=version,
     description='Bindings for Bob\'s audio processing utilities',
-    url='http://github.com/bioidiap/xbob.ap',
+    url='http://github.com/bioidiap/bob.ap',
     license='BSD',
     author='Andre Anjos',
     author_email='andre.anjos@idiap.ch',
@@ -27,30 +27,30 @@ setup(
 
     install_requires=[
       'setuptools',
-      'xbob.blitz',
-      'xbob.sp', # for testing
+      'bob.blitz',
+      'bob.sp', # for testing
       'scipy', # for testing
     ],
 
     namespace_packages=[
-      "xbob",
+      "bob",
       ],
 
     ext_modules = [
-      Extension("xbob.ap.version",
+      Extension("bob.ap.version",
         [
-          "xbob/ap/version.cpp",
+          "bob/ap/version.cpp",
           ],
         packages = packages,
         version = version,
         ),
-      Extension("xbob.ap._library",
+      Extension("bob.ap._library",
         [
-          "xbob/ap/energy.cpp",
-          "xbob/ap/frame_extractor.cpp",
-          "xbob/ap/spectrogram.cpp",
-          "xbob/ap/ceps.cpp",
-          "xbob/ap/main.cpp",
+          "bob/ap/energy.cpp",
+          "bob/ap/frame_extractor.cpp",
+          "bob/ap/spectrogram.cpp",
+          "bob/ap/ceps.cpp",
+          "bob/ap/main.cpp",
           ],
         packages = packages,
         version = version,

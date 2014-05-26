@@ -5,11 +5,11 @@
  * @brief Bindings to the base class bob::ap::Spectrogram
  */
 
-#include <xbob.blitz/cppapi.h>
-#include <xbob.blitz/cleanup.h>
+#include <bob.blitz/cppapi.h>
+#include <bob.blitz/cleanup.h>
 #include "types.h"
 
-PyDoc_STRVAR(s_spectrogram_str, XBOB_EXT_MODULE_PREFIX ".Spectrogram");
+PyDoc_STRVAR(s_spectrogram_str, BOB_EXT_MODULE_PREFIX ".Spectrogram");
 
 PyDoc_STRVAR(s_spectrogram_doc,
 "Spectrogram(sampling_frequency, [win_length_ms=20., [win_shift_ms=10., [n_filters=24, [f_min=0., [f_max=4000., [pre_emphasis_coeff=0.95, [mel_scale=True]]]]]]]) -> new Spectrogram\n\

@@ -10,7 +10,7 @@ import math
 import numpy
 import scipy.io.wavfile
 
-from xbob.sp import fft
+from bob.sp import fft
 
 def read(filename):
   """Read video.FrameContainer containing preprocessed frames"""

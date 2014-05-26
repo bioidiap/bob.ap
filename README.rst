@@ -2,16 +2,16 @@
 .. Andre Anjos <andre.anjos@idiap.ch>
 .. Thu 30 Jan 08:46:53 2014 CET
 
-.. image:: https://travis-ci.org/bioidiap/xbob.ap.svg?branch=master
-   :target: https://travis-ci.org/bioidiap/xbob.ap
-.. image:: https://coveralls.io/repos/bioidiap/xbob.ap/badge.png
-   :target: https://coveralls.io/r/bioidiap/xbob.ap
-.. image:: http://img.shields.io/github/tag/bioidiap/xbob.ap.png
-   :target: https://github.com/bioidiap/xbob.ap
-.. image:: http://img.shields.io/pypi/v/xbob.ap.png
-   :target: https://pypi.python.org/pypi/xbob.ap
-.. image:: http://img.shields.io/pypi/dm/xbob.ap.png
-   :target: https://pypi.python.org/pypi/xbob.ap
+.. image:: https://travis-ci.org/bioidiap/bob.ap.svg?branch=master
+   :target: https://travis-ci.org/bioidiap/bob.ap
+.. image:: https://coveralls.io/repos/bioidiap/bob.ap/badge.png
+   :target: https://coveralls.io/r/bioidiap/bob.ap
+.. image:: http://img.shields.io/github/tag/bioidiap/bob.ap.png
+   :target: https://github.com/bioidiap/bob.ap
+.. image:: http://img.shields.io/pypi/v/bob.ap.png
+   :target: https://pypi.python.org/pypi/bob.ap
+.. image:: http://img.shields.io/pypi/dm/bob.ap.png
+   :target: https://pypi.python.org/pypi/bob.ap
 
 =============================
  Python bindings for bob.ap
@@ -42,7 +42,7 @@ Testing
 
 You can run a set of tests using the nose test runner::
 
-  $ nosetests -sv xbob.ap
+  $ nosetests -sv bob.ap
 
 .. warning::
 
@@ -59,7 +59,7 @@ You can run our documentation tests using sphinx itself::
 
 You can test overall test coverage with::
 
-  $ nosetests --with-coverage --cover-package=xbob.ap
+  $ nosetests --with-coverage --cover-package=bob.ap
 
 The ``coverage`` egg must be installed for this to work properly.
 

@@ -5,8 +5,8 @@
  * @brief All types that need cross-compilation on different units
  */
 
-#ifndef XBOB_AP_TYPES_H
-#define XBOB_AP_TYPES_H
+#ifndef BOB_AP_TYPES_H
+#define BOB_AP_TYPES_H
 
 #include <bob/ap/FrameExtractor.h>
 #include <bob/ap/Energy.h>
@@ -53,4 +53,4 @@ typedef struct {
 
 extern PyTypeObject PyBobApCeps_Type; //forward declaration
 
-#endif /* XBOB_AP_TYPES_H */
+#endif /* BOB_AP_TYPES_H */
