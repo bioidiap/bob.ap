@@ -1,39 +1,42 @@
-# After changing this file, run it through http://lint.travis-ci.org/
-# Generates 4 builds, the ones for python3 will install external wheels
 language: python
 matrix:
   include:
-    - python: 2.6
-      env:
-        - SCIPYSPEC===0.12.0
-    - python: 2.7
-      env:
-        - SCIPYSPEC===0.12.0
-    - python: 3.2
-      env:
-        - NUMPYSPEC===1.8.0
-        - SCIPYSPEC===0.13.1
-    - python: 3.3
-      env:
-        - NUMPYSPEC===1.8.0
-        - SCIPYSPEC===0.13.1
+  - python: 2.6
+    env:
+    - SCIPYSPEC===0.12.0
+  - python: 2.7
+    env:
+    - SCIPYSPEC===0.12.0
+    - secure: WxnAQRmA61mfHCw7wkzp+77ia2RKh111lZPm3kzeVlgARXWMWDlUp3jiTkFb5SagcTBh3TOVI+5/HUddjKLjRQJz4yvA3LkfoJ2PzBz7jGG6nvr16cknkJemD6kPZbqJC3AhGcgUKlbQXsQvu9dN6bQCDU5SolEFSNUY+QV/ozw=
+    - secure: P5pPcavMSCel03a00r63dbO6lx/YFMxxLuGHXVpIvjPuN8WiXDyTI/0aKVGXORvSmvtyqRK07DSdzP/qyoUa2CtpVtbYEQDWJj2uXlufnE6L3rzR8R2oUt1v4zF8LHJ6gqzUKqi4YCg4KCzE6V6ANjsrJKKiiXCIdwfFYmRzpPU=
+  - python: 3.2
+    env:
+    - NUMPYSPEC===1.8.0
+    - SCIPYSPEC===0.13.1
+  - python: 3.3
+    env:
+    - NUMPYSPEC===1.8.0
+    - SCIPYSPEC===0.13.1
 before_install:
-  - sudo add-apt-repository -y ppa:biometrics/bob
-  - sudo add-apt-repository -y ppa:biometrics/bob.preview
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq --force-yes bob-dev
-  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
-  - pip install --upgrade pip setuptools
-  - if [ -n "${NUMPYSPEC}" ]; then pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel numpy$NUMPYSPEC; fi
-  - pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel scipy$SCIPYSPEC sphinx nose
-  - pip install cpp-coveralls
+- sudo add-apt-repository -y ppa:biometrics/bob
+- sudo add-apt-repository -y ppa:biometrics/bob.preview
+- sudo apt-get update -qq
+- sudo apt-get install -qq --force-yes bob-dev
+- sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
+- pip install --upgrade pip setuptools
+- if [ -n "${NUMPYSPEC}" ]; then pip install --find-links http://wheels.astropy.org/
+  --find-links http://wheels2.astropy.org/ --use-wheel numpy$NUMPYSPEC; fi
+- pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/
+  --use-wheel scipy$SCIPYSPEC sphinx nose
+- pip install cpp-coveralls
 install:
-  - "python bootstrap.py"
-  - "CFLAGS=-coverage ./bin/buildout"
+- python bootstrap.py
+- CFLAGS=-coverage ./bin/buildout
 script:
-  - "./bin/python -c 'from bob.ap import get_config; print(get_config())'"
-  - "./bin/coverage run --source=bob.ap ./bin/nosetests -sv"
-  - "./bin/sphinx-build -b doctest doc sphinx"
-  - "./bin/sphinx-build -b html doc sphinx"
+- ./bin/python -c 'from bob.ap import get_config; print(get_config())'
+- ./bin/coverage run --source=bob.ap ./bin/nosetests -sv
+- ./bin/sphinx-build -b doctest doc sphinx
+- ./bin/sphinx-build -b html doc sphinx
 after_success:
-  - "coveralls --build-root=`pwd` --exclude=src"
+- coveralls --build-root=`pwd` --exclude=src
+- ./src/bob.extension/scripts/upload-sphinx.sh
