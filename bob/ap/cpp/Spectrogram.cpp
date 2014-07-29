@@ -8,7 +8,7 @@
  */
 
 #include "Spectrogram.h"
-#include <bob/core/assert.h>
+#include <bob.core/assert.h>
 #include <bob/core/cast.h>
 
 bob::ap::Spectrogram::Spectrogram(const double sampling_frequency,

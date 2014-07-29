@@ -4,8 +4,11 @@
 # Thu 30 Jan 08:45:49 2014 CET
 
 from setuptools import setup, find_packages, dist
-dist.Distribution(dict(setup_requires=['bob.blitz']))
+dist.Distribution(dict(setup_requires=['bob.blitz', 'bob.core']))
 from bob.blitz.extension import Extension
+import bob.core
+
+include_dirs = [bob.core.get_include()]
 
 packages = ['bob-core >= 1.2.2', 'bob-sp >= 1.2.2']
 version = '2.0.0a0'
@@ -29,6 +32,7 @@ setup(
     install_requires=[
       'setuptools',
       'bob.blitz',
+      'bob.core',
       'bob.sp', # for testing
       'scipy', # for testing
     ],
@@ -58,6 +62,7 @@ setup(
           "bob/ap/ceps.cpp",
           "bob/ap/main.cpp",
           ],
+        include_dirs = include_dirs,
         packages = packages,
         version = version,
         ),

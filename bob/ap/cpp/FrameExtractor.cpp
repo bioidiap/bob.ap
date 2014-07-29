@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 #include "FrameExtractor.h"
-#include <bob/core/check.h>
+#include <bob.core/check.h>
 
 bob::ap::FrameExtractor::FrameExtractor(const double sampling_frequency,
     const double win_length_ms, const double win_shift_ms):

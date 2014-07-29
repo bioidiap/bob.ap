@@ -10,7 +10,7 @@
  */
 
 #include "Ceps.h"
-#include <bob/core/assert.h>
+#include <bob.core/assert.h>
 
 bob::ap::Ceps::Ceps(const double sampling_frequency,
     const double win_length_ms, const double win_shift_ms,
