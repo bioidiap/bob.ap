@@ -8,10 +8,10 @@
 #ifndef BOB_AP_TYPES_H
 #define BOB_AP_TYPES_H
 
-#include <bob/ap/FrameExtractor.h>
-#include <bob/ap/Energy.h>
-#include <bob/ap/Spectrogram.h>
-#include <bob/ap/Ceps.h>
+#include "cpp/FrameExtractor.h"
+#include "cpp/Energy.h"
+#include "cpp/Spectrogram.h"
+#include "cpp/Ceps.h"
 
 /**
  * Represents either an FrameExtractor

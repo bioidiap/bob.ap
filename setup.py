@@ -7,7 +7,7 @@ from setuptools import setup, find_packages, dist
 dist.Distribution(dict(setup_requires=['bob.blitz']))
 from bob.blitz.extension import Extension
 
-packages = ['bob-ap >= 1.2.2']
+packages = ['bob-core >= 1.2.2', 'bob-sp >= 1.2.2']
 version = '2.0.0a0'
 
 setup(
@@ -47,6 +47,11 @@ setup(
         ),
       Extension("bob.ap._library",
         [
+          "bob/ap/cpp/Energy.cpp",
+          "bob/ap/cpp/FrameExtractor.cpp",
+          "bob/ap/cpp/Spectrogram.cpp",
+          "bob/ap/cpp/Ceps.cpp",
+
           "bob/ap/energy.cpp",
           "bob/ap/frame_extractor.cpp",
           "bob/ap/spectrogram.cpp",
