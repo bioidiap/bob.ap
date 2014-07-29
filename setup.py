@@ -46,6 +46,7 @@ setup(
         [
           "bob/ap/version.cpp",
           ],
+        include_dirs = include_dirs,
         packages = packages,
         version = version,
         ),
