@@ -10,7 +10,7 @@ import bob.core
 
 include_dirs = [bob.core.get_include()]
 
-packages = ['bob-core >= 1.2.2', 'bob-sp >= 1.2.2']
+packages = ['bob-sp >= 1.2.2']
 version = '2.0.0a0'
 
 setup(
@@ -47,7 +47,6 @@ setup(
           "bob/ap/version.cpp",
           ],
         include_dirs = include_dirs,
-        packages = packages,
         version = version,
         ),
       Extension("bob.ap._library",

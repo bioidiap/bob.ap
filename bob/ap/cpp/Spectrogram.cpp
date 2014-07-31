@@ -9,7 +9,7 @@
 
 #include "Spectrogram.h"
 #include <bob.core/assert.h>
-#include <bob/core/cast.h>
+#include <bob.core/cast.h>
 
 bob::ap::Spectrogram::Spectrogram(const double sampling_frequency,
     const double win_length_ms, const double win_shift_ms,
