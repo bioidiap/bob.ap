@@ -17,7 +17,7 @@
 #include <blitz/array.h>
 #include <boost/format.hpp>
 
-#include <bob/sp/FFT1D.h>
+#include <bob.sp/FFT1D.h>
 
 #include "Energy.h"
 
