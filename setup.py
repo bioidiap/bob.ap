@@ -5,7 +5,7 @@
 
 from setuptools import setup, find_packages, dist
 dist.Distribution(dict(setup_requires=['bob.blitz', 'bob.core', 'bob.sp']))
-from bob.blitz.extension import Extension
+from bob.blitz.extension import Extension, Library, build_ext
 
 version = '2.0.0a0'
 
@@ -29,29 +29,36 @@ setup(
       'setuptools',
       'bob.blitz',
       'bob.core',
-      'bob.sp', # for testing
+      'bob.sp',
       'scipy', # for testing
     ],
 
     namespace_packages=[
       "bob",
-      ],
+    ],
 
     ext_modules = [
       Extension("bob.ap.version",
         [
           "bob/ap/version.cpp",
-          ],
+        ],
         version = version,
-        bob_packages = ['bob.core']
-        ),
-      Extension("bob.ap._library",
+        bob_packages = ['bob.core', 'bob.sp']
+      ),
+
+      Library("bob.ap.bob_ap",
         [
           "bob/ap/cpp/Energy.cpp",
           "bob/ap/cpp/FrameExtractor.cpp",
           "bob/ap/cpp/Spectrogram.cpp",
           "bob/ap/cpp/Ceps.cpp",
+        ],
+        version = version,
+        bob_packages = ['bob.core', 'bob.sp']
+      ),
 
+      Extension("bob.ap._library",
+        [
           "bob/ap/energy.cpp",
           "bob/ap/frame_extractor.cpp",
           "bob/ap/spectrogram.cpp",
@@ -59,10 +66,13 @@ setup(
           "bob/ap/main.cpp",
           ],
         version = version,
-        # TODO: version the packages ?
         bob_packages = ['bob.core', 'bob.sp']
-        ),
-      ],
+      ),
+    ],
+
+    cmdclass = {
+      'build_ext': build_ext
+    },
 
     classifiers = [
       'Development Status :: 3 - Alpha',
@@ -72,6 +82,6 @@ setup(
       'Programming Language :: Python',
       'Programming Language :: Python :: 3',
       'Topic :: Software Development :: Libraries :: Python Modules',
-      ],
+    ],
 
-    )
+  )

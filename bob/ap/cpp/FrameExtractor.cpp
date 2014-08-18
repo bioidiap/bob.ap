@@ -8,7 +8,7 @@
 
 #include <stdexcept>
 
-#include "FrameExtractor.h"
+#include <bob.ap/FrameExtractor.h>
 #include <bob.core/check.h>
 
 bob::ap::FrameExtractor::FrameExtractor(const double sampling_frequency,

@@ -7,7 +7,7 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#include "Spectrogram.h"
+#include <bob.ap/Spectrogram.h>
 #include <bob.core/assert.h>
 #include <bob.core/cast.h>
 

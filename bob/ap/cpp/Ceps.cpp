@@ -9,7 +9,7 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#include "Ceps.h"
+#include <bob.ap/Ceps.h>
 #include <bob.core/assert.h>
 
 bob::ap::Ceps::Ceps(const double sampling_frequency,
