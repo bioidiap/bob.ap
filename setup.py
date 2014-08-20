@@ -3,8 +3,10 @@
 # Andre Anjos <andre.anjos@idiap.ch>
 # Thu 30 Jan 08:45:49 2014 CET
 
+bob_packages = ['bob.core', 'bob.sp']
+
 from setuptools import setup, find_packages, dist
-dist.Distribution(dict(setup_requires=['bob.blitz', 'bob.core', 'bob.sp']))
+dist.Distribution(dict(setup_requires=['bob.blitz'] + bob_packages))
 from bob.blitz.extension import Extension, Library, build_ext
 
 version = '2.0.0a0'
@@ -43,7 +45,7 @@ setup(
           "bob/ap/version.cpp",
         ],
         version = version,
-        bob_packages = ['bob.core', 'bob.sp']
+        bob_packages = bob_packages,
       ),
 
       Library("bob.ap.bob_ap",
@@ -54,7 +56,7 @@ setup(
           "bob/ap/cpp/Ceps.cpp",
         ],
         version = version,
-        bob_packages = ['bob.core', 'bob.sp']
+        bob_packages = bob_packages,
       ),
 
       Extension("bob.ap._library",
@@ -66,7 +68,7 @@ setup(
           "bob/ap/main.cpp",
           ],
         version = version,
-        bob_packages = ['bob.core', 'bob.sp']
+        bob_packages = bob_packages,
       ),
     ],
 
