@@ -18,7 +18,7 @@ setup(
 
     name='bob.ap',
     version=version,
-    description='Bindings for Bob\'s audio processing utilities',
+    description='Bob\'s audio processing utilities',
     url='http://github.com/bioidiap/bob.ap',
     license='BSD',
     author='Andre Anjos',
@@ -75,7 +75,8 @@ setup(
     },
 
     classifiers = [
-      'Development Status :: 3 - Alpha',
+      'Framework :: Bob',
+      'Development Status :: 4 - Beta',
       'Intended Audience :: Developers',
       'License :: OSI Approved :: BSD License',
       'Natural Language :: English',

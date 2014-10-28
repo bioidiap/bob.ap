@@ -36,9 +36,9 @@ Below are 3 examples on how to read a wavefile and how to compute Linear frequen
 Reading audio files
 ~~~~~~~~~~~~~~~~~~~~
 
-The usual native formats can be read with **scipy.io.wavfile** module. Other
-wave formats can be found in some other python modules like **pysox**. An
-example of wave file can be found here **bob/ap/test/data/sample.wav**
+The usual native formats can be read with :py:mod:`scipy.io.wavfile` module. Other
+wave formats can be found in some other python modules like :py:mod:`pysox`. An
+example of wave file can be found here ``bob/ap/test/data/sample.wav``
 
 .. doctest:: aptest
   :options: +NORMALIZE_WHITESPACE
@@ -66,7 +66,7 @@ LFCC and MFCC Extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The LFCC and MFCC coefficients can be extracted from a audio signal by using
-:py:func:`bob.ap.Ceps`. To do so, several parameters can be precised by the
+:py:class:`bob.ap.Ceps`. To do so, several parameters can be precised by the
 user. Typically, these are precised in a configuration file. The following
 values are the default ones:
 
@@ -84,7 +84,7 @@ values are the default ones:
   >>> dct_norm = True # A factor by which the cepstral coefficients are multiplied
   >>> mel_scale = True # Tell whether cepstral features are extracted on a linear (LFCC) or Mel (MFCC) scale
 
-Once the parameters are precised, :py:func:`bob.ap.Ceps` can be called as
+Once the parameters are precised, :py:class:`bob.ap.Ceps` can be called as
 follows:
 
 .. doctest:: aptest
