@@ -4,6 +4,8 @@
 ..
 .. Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
 
+.. _bob.ap:
+
 =================================
  Bob's Audio Processing Routines
 =================================
