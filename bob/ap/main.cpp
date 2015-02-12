@@ -74,8 +74,7 @@ static PyObject* create_module (void) {
     return 0;
   }
 
-  Py_INCREF(m);
-  return m;
+  return Py_BuildValue("O", m);
 
 }
 
