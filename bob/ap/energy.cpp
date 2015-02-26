@@ -217,7 +217,7 @@ static PyObject* PyBobApEnergy_GetEnergyFloor
 static int PyBobApEnergy_SetEnergyFloor
 (PyBobApEnergyObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyNumber_Check(o)) {
+  if (!PyArray_IsAnyScalar(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' energy floor can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }

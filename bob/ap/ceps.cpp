@@ -278,7 +278,7 @@ static PyObject* PyBobApCeps_GetNCeps
 static int PyBobApCeps_SetNCeps
 (PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyNumber_Check(o)) {
+  if (!PyArray_IsAnyScalar(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' n_ceps can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -316,7 +316,7 @@ static PyObject* PyBobApCeps_GetDeltaWin
 static int PyBobApCeps_SetDeltaWin
 (PyBobApCepsObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyNumber_Check(o)) {
+  if (!PyArray_IsAnyScalar(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' delta_win can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }

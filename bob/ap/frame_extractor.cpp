@@ -219,7 +219,7 @@ static PyObject* PyBobApFrameExtractor_GetSamplingFrequency
 static int PyBobApFrameExtractor_SetSamplingFrequency
 (PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyNumber_Check(o)) {
+  if (!PyArray_IsAnyScalar(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' sampling frequency can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -256,7 +256,7 @@ static PyObject* PyBobApFrameExtractor_GetWinLengthMs
 static int PyBobApFrameExtractor_SetWinLengthMs
 (PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyNumber_Check(o)) {
+  if (!PyArray_IsAnyScalar(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' windows length can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -293,7 +293,7 @@ static PyObject* PyBobApFrameExtractor_GetWinShiftMs
 static int PyBobApFrameExtractor_SetWinShiftMs
 (PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyNumber_Check(o)) {
+  if (!PyArray_IsAnyScalar(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' windows shift can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -454,7 +454,7 @@ static PyObject* PyBobApFrameExtractor_GetShape
     arg = PyList_GET_ITEM(tmp, 0);
   }
 
-  if (PyNumber_Check(arg)) {
+  if (PyInt_Check(arg)) {
     return PyBobApFrameExtractor_GetShapeInt(self, args, kwds);
   }
 
