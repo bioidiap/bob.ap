@@ -7,6 +7,7 @@
 
 #include <bob.blitz/cppapi.h>
 #include <bob.blitz/cleanup.h>
+#include <bob.extension/defines.h>
 #include "types.h"
 
 PyDoc_STRVAR(s_spectrogram_str, BOB_EXT_MODULE_PREFIX ".Spectrogram");
@@ -254,7 +255,7 @@ static PyObject* PyBobApSpectrogram_GetNFilters
 static int PyBobApSpectrogram_SetNFilters
 (PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyArray_IsAnyScalar(o)) {
+  if (!PyBob_NumberCheck(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' n_filters can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -291,7 +292,7 @@ static PyObject* PyBobApSpectrogram_GetFMin
 static int PyBobApSpectrogram_SetFMin
 (PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyArray_IsAnyScalar(o)) {
+  if (!PyBob_NumberCheck(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' f_min can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -328,7 +329,7 @@ static PyObject* PyBobApSpectrogram_GetFMax
 static int PyBobApSpectrogram_SetFMax
 (PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyArray_IsAnyScalar(o)) {
+  if (!PyBob_NumberCheck(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' f_max can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -365,7 +366,7 @@ static PyObject* PyBobApSpectrogram_GetPreEmphasisCoeff
 static int PyBobApSpectrogram_SetPreEmphasisCoeff
 (PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyArray_IsAnyScalar(o)) {
+  if (!PyBob_NumberCheck(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' pre_emphasis_coeff can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }

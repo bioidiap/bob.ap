@@ -7,6 +7,7 @@
 
 #include <bob.blitz/cppapi.h>
 #include <bob.blitz/cleanup.h>
+#include <bob.extension/defines.h>
 #include "types.h"
 
 PyDoc_STRVAR(s_frame_extractor_str, BOB_EXT_MODULE_PREFIX ".FrameExtractor");
@@ -219,7 +220,7 @@ static PyObject* PyBobApFrameExtractor_GetSamplingFrequency
 static int PyBobApFrameExtractor_SetSamplingFrequency
 (PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyArray_IsAnyScalar(o)) {
+  if (!PyBob_NumberCheck(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' sampling frequency can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -256,7 +257,7 @@ static PyObject* PyBobApFrameExtractor_GetWinLengthMs
 static int PyBobApFrameExtractor_SetWinLengthMs
 (PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyArray_IsAnyScalar(o)) {
+  if (!PyBob_NumberCheck(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' windows length can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
@@ -293,7 +294,7 @@ static PyObject* PyBobApFrameExtractor_GetWinShiftMs
 static int PyBobApFrameExtractor_SetWinShiftMs
 (PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
 
-  if (!PyArray_IsAnyScalar(o)) {
+  if (!PyBob_NumberCheck(o)) {
     PyErr_Format(PyExc_TypeError, "`%s' windows shift can only be set using a number, not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
     return -1;
   }
