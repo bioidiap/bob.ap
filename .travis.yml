@@ -20,7 +20,7 @@ before_install:
 - pip install --find-links https://www.idiap.ch/software/bob/wheels/travis/ --use-wheel -r requirements.txt --pre coveralls
 install:
 - python bootstrap-buildout.py
-- CPPFLAGS=--coverage LDFLAGS=--coverage ./bin/buildout buildout:develop=. buildout:extensions=bob.buildout buildout:auto-checkout=
+- CPPFLAGS=--coverage LDFLAGS=--coverage ./bin/buildout buildout:debug=false buildout:develop=. buildout:extensions=bob.buildout buildout:auto-checkout=
 script:
 - ./bin/python -c 'import pkg_resources; from bob.ap import get_config; print(get_config())'
 - ./bin/coverage run --source=bob.ap ./bin/nosetests -sv
