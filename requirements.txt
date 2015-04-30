@@ -1,8 +1,5 @@
-setuptools
-bob.extension>2.0.4
+bob.extension
 bob.blitz
 bob.core
 bob.sp
-
-# for testing
 scipy
