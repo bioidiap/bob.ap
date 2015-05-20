@@ -51,9 +51,6 @@ static PyObject* create_module (void) {
   if (!m) return 0;
   auto m_ = make_safe(m); ///< protects against early returns
 
-  if (PyModule_AddStringConstant(m, "__version__", BOB_EXT_MODULE_VERSION) < 0)
-    return 0;
-
   /* register the types to python */
   Py_INCREF(&PyBobApFrameExtractor_Type);
   if (PyModule_AddObject(m, "FrameExtractor", (PyObject *)&PyBobApFrameExtractor_Type) < 0) return 0;
