@@ -10,6 +10,9 @@
 #endif
 #include <bob.blitz/capi.h>
 #include <bob.blitz/cleanup.h>
+#include <bob.core/api.h>
+#include <bob.sp/api.h>
+
 #include "types.h"
 
 static PyMethodDef module_methods[] = {
@@ -65,14 +68,11 @@ static PyObject* create_module (void) {
   if (PyModule_AddObject(m, "Ceps", (PyObject *)&PyBobApCeps_Type) < 0) return 0;
 
   /* imports dependencies */
-  if (import_bob_blitz() < 0) {
-    PyErr_Print();
-    PyErr_Format(PyExc_ImportError, "cannot import `%s'", BOB_EXT_MODULE_NAME);
-    return 0;
-  }
+  if (import_bob_blitz() < 0) return 0;
+  if (import_bob_core_logging() < 0) return 0;
+  if (import_bob_sp() < 0) return 0;
 
   return Py_BuildValue("O", m);
-
 }
 
 PyMODINIT_FUNC BOB_EXT_ENTRY_NAME (void) {
