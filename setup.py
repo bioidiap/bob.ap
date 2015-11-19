@@ -33,9 +33,7 @@ setup(
     setup_requires = build_requires,
     install_requires = build_requires,
 
-    namespace_packages=[
-      "bob",
-    ],
+
 
     ext_modules = [
       Extension("bob.ap.version",
