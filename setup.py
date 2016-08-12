@@ -19,7 +19,7 @@ setup(
     name='bob.ap',
     version=version,
     description='Bob\'s audio processing utilities',
-    url='http://github.com/bioidiap/bob.ap',
+    url='https://gitlab.idiap.ch/bob/bob.ap',
     license='BSD',
     author='Andre Anjos',
     author_email='andre.anjos@idiap.ch',
@@ -32,8 +32,6 @@ setup(
 
     setup_requires = build_requires,
     install_requires = build_requires,
-
-
 
     ext_modules = [
       Extension("bob.ap.version",
