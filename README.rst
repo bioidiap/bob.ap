@@ -26,8 +26,8 @@ and linear triangular (LFCC) filters [Furui1981]_, spectral flux-based features 
 subband centroid frequency (SCFC) [Le2011]_. We are planning to update and add more features in the
 near future.
 
-*Please note that the implementation of MFCC and LFCC features has changed compared to earlier version of the package,
-as we corrected pre-emphasis and DCT computations. Delta and delta-delta computation was slightly changed too.*
+*Please note that the implementation of MFCC and LFCC features has changed compared to an earlier version of the package,
+as we corrected pre-emphasis and DCT computations. Delta and delta-delta computations were slightly changed too.*
 
 Installation
 ------------
