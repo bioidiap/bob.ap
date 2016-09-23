@@ -19,7 +19,8 @@ bob::ap::Energy::Energy(const double sampling_frequency, const double win_length
 }
 
 bob::ap::Energy::Energy(const bob::ap::Energy& other):
-  bob::ap::FrameExtractor(other), m_energy_floor(1.)
+  bob::ap::FrameExtractor(other),
+  m_energy_floor(other.m_energy_floor)
 {
   // Initializes logarithm of flooring values
   m_log_energy_floor = log(m_energy_floor);

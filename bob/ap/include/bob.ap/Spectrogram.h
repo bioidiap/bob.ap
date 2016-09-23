@@ -41,10 +41,10 @@ class Spectrogram: public Energy
      */
     Spectrogram(const double sampling_frequency,
       const double win_length_ms=20., const double win_shift_ms=10.,
-      const bool normalize_mean=true,
       const size_t n_filters=24, const double f_min=0.,
       const double f_max=8000., const double pre_emphasis_coeff=0.95,
-      const bool mel_scale=true, const bool rect_filter=false, const bool inverse_filter=false,
+      const bool mel_scale=true, const bool normalize_mean=true,
+      const bool rect_filter=false, const bool inverse_filter=false,
       const bool normalize_spectrum=false, const bool ssfc_features=false,
       const bool scfc_features=false, const bool scmc_features=false);
 

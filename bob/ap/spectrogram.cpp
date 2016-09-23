@@ -14,7 +14,7 @@
 PyDoc_STRVAR(s_spectrogram_str, BOB_EXT_MODULE_PREFIX ".Spectrogram");
 
 PyDoc_STRVAR(s_spectrogram_doc,
-"Spectrogram(sampling_frequency, [win_length_ms=20., [win_shift_ms=10., [normalize_mean=True, [n_filters=24, [f_min=0., [f_max=4000., [pre_emphasis_coeff=0.95, [mel_scale=True, [rect_filter=False, [inverse_filter=False, [normalize_spectrum=False, [ssfc_features=False, [scfc_features=False, [scmc_features=False]]]]]]]]]]]]]]) -> new Spectrogram\n\
+"Spectrogram(sampling_frequency, [win_length_ms=20., [win_shift_ms=10., [n_filters=24, [f_min=0., [f_max=4000., [pre_emphasis_coeff=0.95, [mel_scale=True, [normalize_mean=True, [rect_filter=False, [inverse_filter=False, [normalize_spectrum=False, [ssfc_features=False, [scfc_features=False, [scmc_features=False]]]]]]]]]]]]]]) -> new Spectrogram\n\
 Spectrogram(other) -> new Spectrogram\n\
 \n\
 Objects of this class, after configuration, can extract the\n\
@@ -30,11 +30,6 @@ win_length_ms\n\
 \n\
 win_shift_ms\n\
   [float] the window shift in miliseconds\n\
-\n\
-normalize_mean\n\
-  [bool] Tells whether frame should be normalized \n\
-  by subtracting mean (True) or dividing by max_range (False)\n\
-  ``True`` is the default value.\n\
 \n\
 n_filters\n\
   [int] the number of filter bands\n\
@@ -52,6 +47,11 @@ mel_scale\n\
   [bool] tells whether cepstral features are extracted\n\
   on a linear (LFCC, set it to ``False``) or Mel (MFCC,\n\
   set it to ``True`` - the default)\n\
+\n\
+normalize_mean\n\
+  [bool] Tells whether frame should be normalized \n\
+  by subtracting mean (True) or dividing by max_range (False)\n\
+  ``True`` is the default value.\n\
 \n\
 rect_filter\n\
   [bool] tells whether to apply the filter in the\n\
@@ -146,12 +146,12 @@ static int PyBobApSpectrogram_InitParameters
     "sampling_frequency",
     "win_length_ms",
     "win_shift_ms",
-    "normalize_mean",
     "n_filters",
     "f_min",
     "f_max",
     "pre_emphasis_coeff",
     "mel_scale",
+    "normalize_mean",
     "rect_filter",
     "inverse_filter",
     "normalize_spectrum",
@@ -164,27 +164,27 @@ static int PyBobApSpectrogram_InitParameters
   double sampling_frequency = 0.;
   double win_length_ms = 20.;
   double win_shift_ms = 10.;
-  PyObject* normalize_mean = Py_True;
   Py_ssize_t n_filters = 24;
   double f_min = 0.;
   double f_max = 8000.;
   double pre_emphasis_coeff = 0.95;
   PyObject* mel_scale = Py_True;
+  PyObject* normalize_mean = Py_True;
   PyObject* rect_filter = Py_False;
   PyObject* inverse_filter = Py_False;
   PyObject* normalize_spectrum = Py_False;
   PyObject* ssfc_features = Py_False;
   PyObject* scfc_features = Py_False;
   PyObject* scmc_features = Py_False;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddOndddOOOOOOO", kwlist,
-        &sampling_frequency, &win_length_ms, &win_shift_ms, &normalize_mean,
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddndddOOOOOOOO", kwlist,
+        &sampling_frequency, &win_length_ms, &win_shift_ms,
         &n_filters, &f_min, &f_max, &pre_emphasis_coeff, &mel_scale,
-        &rect_filter, &inverse_filter, &normalize_spectrum,
+        &normalize_mean, &rect_filter, &inverse_filter, &normalize_spectrum,
         &ssfc_features, &scfc_features, &scmc_features))
     return -1;
 
-  bool normalize_mean_ = PyObject_IsTrue(normalize_mean);
   bool mel_scale_ = PyObject_IsTrue(mel_scale);
+  bool normalize_mean_ = PyObject_IsTrue(normalize_mean);
   bool rect_filter_ = PyObject_IsTrue(rect_filter);
   bool inverse_filter_ = PyObject_IsTrue(inverse_filter);
   bool normalize_spectrum_ = PyObject_IsTrue(normalize_spectrum);
@@ -194,8 +194,9 @@ static int PyBobApSpectrogram_InitParameters
 
   try {
     self->cxx = new bob::ap::Spectrogram(sampling_frequency,
-        win_length_ms, win_shift_ms, normalize_mean_, n_filters, f_min, f_max,
-        pre_emphasis_coeff, mel_scale_, rect_filter_, inverse_filter_, normalize_spectrum_,
+        win_length_ms, win_shift_ms, n_filters, f_min, f_max,
+        pre_emphasis_coeff, mel_scale_, normalize_mean_, rect_filter_,
+        inverse_filter_, normalize_spectrum_,
         ssfc_features_, scfc_features_, scmc_features_);
     if (!self->cxx) {
       PyErr_Format(PyExc_MemoryError, "cannot create new object of type `%s' - no more memory", Py_TYPE(self)->tp_name);
@@ -264,7 +265,7 @@ static PyObject* PyBobApSpectrogram_Repr(PyBobApSpectrogramObject* self) {
   static const int MAXSIZE = 256;
   char buffer[MAXSIZE];
   Py_ssize_t n_filters = self->cxx->getNFilters();
-  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f, normalize_mean=%s, n_filters=%" PY_FORMAT_SIZE_T "d, f_min=%f, f_max=%f, pre_emphasis_coeff=%f, mel_scale=%s, rect_filter=%s, inverse_filter=%s, normalize_spectrum=%s, ssfc_features=%s, scfc_features=%s, scmc_features=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), self->cxx->getNormalizeMean()?"True":"False", n_filters, self->cxx->getFMin(), self->cxx->getFMax(), self->cxx->getPreEmphasisCoeff(), self->cxx->getMelScale()?"True":"False", self->cxx->getRectangularFilter()?"True":"False", self->cxx->getInverseFilter()?"True":"False", self->cxx->getNormalizeSpectrum()?"True":"False", self->cxx->getSSFCFeatures()?"True":"False", self->cxx->getSCFCFeatures()?"True":"False", self->cxx->getSCMCFeatures()?"True":"False");
+  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f,n_filters=%" PY_FORMAT_SIZE_T "d, f_min=%f, f_max=%f, pre_emphasis_coeff=%f, mel_scale=%s,  normalize_mean=%s, rect_filter=%s, inverse_filter=%s, normalize_spectrum=%s, ssfc_features=%s, scfc_features=%s, scmc_features=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), n_filters, self->cxx->getFMin(), self->cxx->getFMax(), self->cxx->getPreEmphasisCoeff(), self->cxx->getMelScale()?"True":"False", self->cxx->getNormalizeMean()?"True":"False", self->cxx->getRectangularFilter()?"True":"False", self->cxx->getInverseFilter()?"True":"False", self->cxx->getNormalizeSpectrum()?"True":"False", self->cxx->getSSFCFeatures()?"True":"False", self->cxx->getSCFCFeatures()?"True":"False", self->cxx->getSCMCFeatures()?"True":"False");
   return
 # if PY_VERSION_HEX >= 0x03000000
   PyUnicode_FromStringAndSize

@@ -61,7 +61,8 @@ bool bob::ap::FrameExtractor::operator==(const bob::ap::FrameExtractor& other) c
 {
   return (m_sampling_frequency == other.m_sampling_frequency &&
       m_win_length_ms == other.m_win_length_ms &&
-      m_win_shift_ms == other.m_win_shift_ms);
+      m_win_shift_ms == other.m_win_shift_ms &&
+      m_normalize_mean == other.m_normalize_mean);
 }
 
 bool bob::ap::FrameExtractor::operator!=(const bob::ap::FrameExtractor& other) const

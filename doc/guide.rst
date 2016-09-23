@@ -75,12 +75,12 @@ values are the default ones:
 
   >>> win_length_ms = 20 # The window length of the cepstral analysis in milliseconds
   >>> win_shift_ms = 10 # The window shift of the cepstral analysis in milliseconds
-  >>> n_filters = 24 # The number of filter bands
-  >>> n_ceps = 19 # The number of cepstral coefficients
+  >>> n_filters = 20 # The number of filter bands
+  >>> n_ceps = 20 # The number of cepstral coefficients
   >>> f_min = 0. # The minimal frequency of the filter bank
   >>> f_max = 4000. # The maximal frequency of the filter bank
   >>> delta_win = 2 # The integer delta value used for computing the first and second order derivatives
-  >>> pre_emphasis_coef = 0.97 # The coefficient used for the pre-emphasis
+  >>> pre_emphasis_coef = 1.0 # The coefficient used for the pre-emphasis
   >>> dct_norm = True # A factor by which the cepstral coefficients are multiplied
   >>> mel_scale = True # Tell whether cepstral features are extracted on a linear (LFCC) or Mel (MFCC) scale
 

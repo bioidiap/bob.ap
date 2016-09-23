@@ -47,9 +47,11 @@ class Ceps: public Spectrogram
       const size_t n_ceps=19, const double f_min=0.,
       const double f_max=4000., const size_t delta_win=2,
       const double pre_emphasis_coef=0.95, const bool mel_scale=true,
+      const bool dct_norm=false, const bool normalize_mean=true,
       const bool rect_filter=false, const bool inverse_filter=false,
-      const bool dct_norm=false, const bool ssfc_features=false,
-      const bool scfc_features=false, const bool scmc_features=false, bool normalize_spectrum=false);
+      const bool normalize_spectrum=false,
+      const bool ssfc_features=false, const bool scfc_features=false,
+      const bool scmc_features=false);
 
     /**
      * @brief Copy constructor.
