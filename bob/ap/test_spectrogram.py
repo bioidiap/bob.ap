@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
 # Elie Khoury <Elie.Khoury@idiap.ch>
+# Pavel Korshunov <Pavel.Korshunov@idiap.ch>
 #
 # Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
 
@@ -9,59 +10,30 @@ import numpy
 import math
 import pkg_resources
 
+from scipy import signal
+
 from . import Spectrogram
 from .test_utils import *
 
-def spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, pre_emphasis_coef, mel_scale):
+def spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filters,
+                            f_min, f_max, pre_emphasis_coef, mel_scale, normalize_mean):
   #########################
   ## Initialisation part ##
   #########################
 
-  c = Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, f_min, f_max, pre_emphasis_coef)
-
-  c.mel_scale = mel_scale
-
-  sf = rate_wavsample[0]
+  rate = rate_wavsample[0]
   data = rate_wavsample[1]
 
-  win_length = int (sf * win_length_ms / 1000)
-  win_shift = int (sf * win_shift_ms / 1000)
+  win_length = int (rate * win_length_ms / 1000)
+  win_shift = int (rate * win_shift_ms / 1000)
   win_size = int (2.0 ** math.ceil(math.log(win_length) / math.log(2)))
   m = int (math.log(win_size) / math.log(2))
 
   # Hamming initialisation
-  cst = 2 * math.pi / (win_length - 1.0)
-  hamming_kernel = numpy.zeros(win_length)
-
-  for i in range(win_length):
-    hamming_kernel[i] = (0.54 - 0.46 * math.cos(i * cst))
+  hamming_kernel = init_hamming_kernel(win_length)
 
   # Compute cut-off frequencies
-  p_index = numpy.array(numpy.zeros(n_filters + 2), dtype=numpy.int16)
-  if(mel_scale):
-    # Mel scale
-    m_max = mel_python(f_max)
-
-    m_min = mel_python(f_min)
-
-    for i in range(n_filters + 2):
-      alpha = ((i) / (n_filters + 1.0))
-      f = mel_inv_python(m_min * (1 - alpha) + m_max * alpha)
-      factor = f / (sf * 1.0)
-      p_index[i] = int (round((win_size) * factor))
-  else:
-    #linear scale
-    for i in range(n_filters + 2):
-      alpha = (i) / (n_filters + 1.0)
-      f = f_min * (1.0 - alpha) + f_max * alpha
-      p_index[i] = int (round((win_size / (sf * 1.0) * f)))
-
-  #Cosine transform initialisation
-  dct_kernel = [ [ 0 for i in range(n_filters) ] for j in range(n_ceps) ]
-
-  for i in range(1, n_ceps + 1):
-    for j in range(1, n_filters + 1):
-      dct_kernel[i - 1][j - 1] = math.cos(math.pi * i * (j - 0.5) / n_filters)
+  p_index = init_freqfilter(rate, win_size,  mel_scale, n_filters, f_min, f_max)
 
   ######################################
   ### End of the Initialisation part ###
@@ -75,52 +47,43 @@ def spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filte
   n_frames = int(1 + (data_size - win_length) / win_shift)
 
   # create features set
-  ceps_sequence = numpy.zeros(n_ceps)
-  dim0 = n_ceps
-  dim = dim0
-  params = [ [ 0 for i in range(dim) ] for j in range(n_frames) ]
+  features = numpy.zeros([n_frames, int(win_size/2)+1], dtype=numpy.float64)
 
+  last_frame_elem = 0
   # compute cepstral coefficients
-  delta = 0
   for i in range(n_frames):
     # create a frame
     frame = numpy.zeros(win_size, dtype=numpy.float64)
-    som = 0.0
     vec = numpy.arange(win_length)
     frame[vec] = data[vec + i * win_shift]
     som = numpy.sum(frame)
     som = som / win_size
-    frame = frame - som
+    frame[vec] -= som  # normalization by mean here
 
-    f2 = numpy.copy(frame)
-
-    # pre-emphasis filtering
-    frame = pre_emphasis(frame, win_length, pre_emphasis_coef)
+    frame_, last_frame_elem = pre_emphasis(frame[vec], win_shift, pre_emphasis_coef, last_frame_elem)
+    frame[vec] = frame_
 
     # Hamming windowing
-    f2 = numpy.copy(frame)
     frame = hamming_window(frame, hamming_kernel, win_length)
 
-
-    f2=numpy.copy(frame)
     filters, spec_row = log_filter_bank(frame, n_filters, p_index, win_size)
 
-    vec=numpy.arange(int(win_size/2)+1)
+    features[i] = spec_row[0:int(win_size/2)+1]
 
-    params[i][0:(int(win_size/2) +1)]=spec_row[vec]
-  data = numpy.array(params)
+  return numpy.array(features)
 
-  return data
-
-def spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win,
-                               pre_emphasis_coef, mel_scale):
-  c = Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters, f_min, f_max, pre_emphasis_coef, mel_scale)
+def spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, f_min, f_max,
+                               pre_emphasis_coef, mel_scale, normalize_mean):
+  c = Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters,
+                  f_min, f_max, pre_emphasis_coef, mel_scale, normalize_mean)
 
   A = c(rate_wavsample[1])
-  B = spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, f_min, f_max, pre_emphasis_coef, mel_scale)
+  B = spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filters,
+                              f_min, f_max, pre_emphasis_coef, mel_scale, normalize_mean)
 
   diff=numpy.sum(numpy.sum((A-B)*(A-B)))
   assert numpy.allclose(diff, 0., rtol=1e-07, atol=1e-05)
+
 
 ##################### Unit Tests ##################
 def test_spectrogram():
@@ -129,12 +92,11 @@ def test_spectrogram():
 
     win_length_ms = 20
     win_shift_ms = 10
-    n_filters = 24
-    n_ceps = 19
+    normalize_mean = True
+    n_filters = 20
     f_min = 0.
     f_max = 4000.
-    delta_win = 2
-    pre_emphasis_coef = 0.97
-    dct_norm = True
+    pre_emphasis_coef = 1.0
     mel_scale = True
-    spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, n_ceps, dct_norm, f_min, f_max, delta_win, pre_emphasis_coef, mel_scale)
+    spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, f_min, f_max,
+                               pre_emphasis_coef, mel_scale, normalize_mean)

@@ -1,5 +1,6 @@
 /**
  * @author Andre Anjos <andre.anjos@idiap.ch>
+ * @author Pavel Korshunov <Pavel.Korshunov@idiap.ch>
  * @date Thu  6 Feb 09:00:05 2014
  *
  * @brief Bindings to the base class bob::ap::Spectrogram
@@ -13,7 +14,7 @@
 PyDoc_STRVAR(s_spectrogram_str, BOB_EXT_MODULE_PREFIX ".Spectrogram");
 
 PyDoc_STRVAR(s_spectrogram_doc,
-"Spectrogram(sampling_frequency, [win_length_ms=20., [win_shift_ms=10., [n_filters=24, [f_min=0., [f_max=4000., [pre_emphasis_coeff=0.95, [mel_scale=True]]]]]]]) -> new Spectrogram\n\
+"Spectrogram(sampling_frequency, [win_length_ms=20., [win_shift_ms=10., [n_filters=24, [f_min=0., [f_max=4000., [pre_emphasis_coeff=0.95, [mel_scale=True, [normalize_mean=True, [rect_filter=False, [inverse_filter=False, [normalize_spectrum=False, [ssfc_features=False, [scfc_features=False, [scmc_features=False]]]]]]]]]]]]]]) -> new Spectrogram\n\
 Spectrogram(other) -> new Spectrogram\n\
 \n\
 Objects of this class, after configuration, can extract the\n\
@@ -46,6 +47,40 @@ mel_scale\n\
   [bool] tells whether cepstral features are extracted\n\
   on a linear (LFCC, set it to ``False``) or Mel (MFCC,\n\
   set it to ``True`` - the default)\n\
+\n\
+normalize_mean\n\
+  [bool] Tells whether frame should be normalized \n\
+  by subtracting mean (True) or dividing by max_range (False)\n\
+  ``True`` is the default value.\n\
+\n\
+rect_filter\n\
+  [bool] tells whether to apply the filter in the\n\
+  inversed order, i.e., from high frequencies to low\n\
+  (set it to ``True''). ``False`` is the default value.\n\
+\n\
+inverse_filter\n\
+  [bool] tells whether cepstral features are extracted\n\
+  using a rectungular filter (set it to ``True``), i.e., RFCC features,\n\
+  instead of the default filter (the default value is ``False``)\n\
+\n\
+normalize_spectrum\n\
+  [bool] Tells whether to normalize the power spectrum of the signal.\n\
+  The default value is ``False``.\n\
+\n\
+ssfc_features\n\
+  [bool] Set to true if you want to compute\n\
+  Subband Spectral Flux Coefficients (SSFC), which measures\n\
+  the frame-by-frame change in the power spectrum\n\
+\n\
+scfc_features\n\
+  [bool] Set to true if you want to compute\n\
+  Spectral Centroid Frequency Coefficients (SCFC), which\n\
+  capture detailed information about subbands similar to formant frequencies\n\
+\n\
+scmc_features\n\
+  [bool] Set to true if you want to compute\n\
+  Spectral Centroid Magnitude  Coefficients (SCMC), which\n\
+  capture detailed information about subbands similar to SCFC features\n\
 \n\
 other\n\
   [Spectrogram] an object of which is or inherits from ``Spectrogram``\n\
@@ -116,6 +151,13 @@ static int PyBobApSpectrogram_InitParameters
     "f_max",
     "pre_emphasis_coeff",
     "mel_scale",
+    "normalize_mean",
+    "rect_filter",
+    "inverse_filter",
+    "normalize_spectrum",
+    "ssfc_features",
+    "scfc_features",
+    "scmc_features",
     0};
   static char** kwlist = const_cast<char**>(const_kwlist);
 
@@ -124,20 +166,38 @@ static int PyBobApSpectrogram_InitParameters
   double win_shift_ms = 10.;
   Py_ssize_t n_filters = 24;
   double f_min = 0.;
-  double f_max = 4000.;
+  double f_max = 8000.;
   double pre_emphasis_coeff = 0.95;
   PyObject* mel_scale = Py_True;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddndddO", kwlist,
+  PyObject* normalize_mean = Py_True;
+  PyObject* rect_filter = Py_False;
+  PyObject* inverse_filter = Py_False;
+  PyObject* normalize_spectrum = Py_False;
+  PyObject* ssfc_features = Py_False;
+  PyObject* scfc_features = Py_False;
+  PyObject* scmc_features = Py_False;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddndddOOOOOOOO", kwlist,
         &sampling_frequency, &win_length_ms, &win_shift_ms,
-        &n_filters, &f_min, &f_max, &pre_emphasis_coeff, &mel_scale))
+        &n_filters, &f_min, &f_max, &pre_emphasis_coeff, &mel_scale,
+        &normalize_mean, &rect_filter, &inverse_filter, &normalize_spectrum,
+        &ssfc_features, &scfc_features, &scmc_features))
     return -1;
 
   bool mel_scale_ = PyObject_IsTrue(mel_scale);
+  bool normalize_mean_ = PyObject_IsTrue(normalize_mean);
+  bool rect_filter_ = PyObject_IsTrue(rect_filter);
+  bool inverse_filter_ = PyObject_IsTrue(inverse_filter);
+  bool normalize_spectrum_ = PyObject_IsTrue(normalize_spectrum);
+  bool ssfc_features_ = PyObject_IsTrue(ssfc_features);
+  bool scfc_features_ = PyObject_IsTrue(scfc_features);
+  bool scmc_features_ = PyObject_IsTrue(scmc_features);
 
   try {
     self->cxx = new bob::ap::Spectrogram(sampling_frequency,
         win_length_ms, win_shift_ms, n_filters, f_min, f_max,
-        pre_emphasis_coeff, mel_scale_);
+        pre_emphasis_coeff, mel_scale_, normalize_mean_, rect_filter_,
+        inverse_filter_, normalize_spectrum_,
+        ssfc_features_, scfc_features_, scmc_features_);
     if (!self->cxx) {
       PyErr_Format(PyExc_MemoryError, "cannot create new object of type `%s' - no more memory", Py_TYPE(self)->tp_name);
       return -1;
@@ -205,7 +265,7 @@ static PyObject* PyBobApSpectrogram_Repr(PyBobApSpectrogramObject* self) {
   static const int MAXSIZE = 256;
   char buffer[MAXSIZE];
   Py_ssize_t n_filters = self->cxx->getNFilters();
-  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f, n_filters=%" PY_FORMAT_SIZE_T "d, f_min=%f, f_max=%f, pre_emphasis_coeff=%f, mel_scale=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), n_filters, self->cxx->getFMin(), self->cxx->getFMax(), self->cxx->getPreEmphasisCoeff(), self->cxx->getMelScale()?"True":"False");
+  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f,n_filters=%" PY_FORMAT_SIZE_T "d, f_min=%f, f_max=%f, pre_emphasis_coeff=%f, mel_scale=%s,  normalize_mean=%s, rect_filter=%s, inverse_filter=%s, normalize_spectrum=%s, ssfc_features=%s, scfc_features=%s, scmc_features=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), n_filters, self->cxx->getFMin(), self->cxx->getFMax(), self->cxx->getPreEmphasisCoeff(), self->cxx->getMelScale()?"True":"False", self->cxx->getNormalizeMean()?"True":"False", self->cxx->getRectangularFilter()?"True":"False", self->cxx->getInverseFilter()?"True":"False", self->cxx->getNormalizeSpectrum()?"True":"False", self->cxx->getSSFCFeatures()?"True":"False", self->cxx->getSCFCFeatures()?"True":"False", self->cxx->getSCMCFeatures()?"True":"False");
   return
 # if PY_VERSION_HEX >= 0x03000000
   PyUnicode_FromStringAndSize
@@ -421,8 +481,205 @@ static int PyBobApSpectrogram_SetMelScale
   }
 
   return 0;
+}
+
+
+PyDoc_STRVAR(s_rect_filter_str, "rect_filter");
+PyDoc_STRVAR(s_rect_filter_doc,
+"Tells whether cepstral features are extracted using a rectangular scale\n\
+");
+
+static PyObject* PyBobApSpectrogram_GetRectangularFilter
+(PyBobApSpectrogramObject* self, void* /*closure*/) {
+  if (self->cxx->getRectangularFilter()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+}
+
+static int PyBobApSpectrogram_SetRectangularFilter
+(PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
+
+  bool b = PyObject_IsTrue(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setRectangularFilter(b);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `rect_filter' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
+}
+
+
+PyDoc_STRVAR(s_inverse_filter_str, "inverse_filter");
+PyDoc_STRVAR(s_inverse_filter_doc,
+"Tells whether the filter is applied in the inversed order when cepstral features are extracted\n\
+");
+
+static PyObject* PyBobApSpectrogram_GetInverseFilter
+(PyBobApSpectrogramObject* self, void* /*closure*/) {
+  if (self->cxx->getInverseFilter()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+}
+
+static int PyBobApSpectrogram_SetInverseFilter
+(PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
+
+  bool b = PyObject_IsTrue(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setInverseFilter(b);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `inverse_filter' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
+}
+
+
+PyDoc_STRVAR(s_normalize_spectrum_str, "normalize_spectrum");
+PyDoc_STRVAR(s_normalize_spectrum_doc,
+"Tells whether the filter is applied in the inversed order when cepstral features are extracted\n\
+");
+
+static PyObject* PyBobApSpectrogram_GetNormalizeSpectrum
+(PyBobApSpectrogramObject* self, void* /*closure*/) {
+  if (self->cxx->getNormalizeSpectrum()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+}
+
+static int PyBobApSpectrogram_SetNormalizeSpectrum
+(PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
+
+  bool b = PyObject_IsTrue(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setNormalizeSpectrum(b);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `normalize_spectrum' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
+}
+
+
+PyDoc_STRVAR(s_ssfc_features_str, "ssfc_features");
+PyDoc_STRVAR(s_ssfc_features_doc,
+"Make true if you want to compute SSFC features"
+);
+
+static PyObject* PyBobApSpectrogram_GetSSFCFeatures
+(PyBobApSpectrogramObject* self, void* /*closure*/) {
+  if (self->cxx->getSSFCFeatures()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+}
+
+static int PyBobApSpectrogram_SetSSFCFeatures
+(PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
+
+  bool b = PyObject_IsTrue(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setSSFCFeatures(b);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `ssfc_features' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
 
 }
+
+PyDoc_STRVAR(s_scfc_features_str, "scfc_features");
+PyDoc_STRVAR(s_scfc_features_doc,
+"Make true if you want to compute SCFC features"
+);
+
+static PyObject* PyBobApSpectrogram_GetSCFCFeatures
+(PyBobApSpectrogramObject* self, void* /*closure*/) {
+  if (self->cxx->getSCFCFeatures()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+}
+
+static int PyBobApSpectrogram_SetSCFCFeatures
+(PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
+
+  bool b = PyObject_IsTrue(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setSCFCFeatures(b);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `scfc_features' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
+}
+
+PyDoc_STRVAR(s_scmc_features_str, "scmc_features");
+PyDoc_STRVAR(s_scmc_features_doc,
+"Make true if you want to compute SCMC features"
+);
+
+static PyObject* PyBobApSpectrogram_GetSCMCFeatures
+(PyBobApSpectrogramObject* self, void* /*closure*/) {
+  if (self->cxx->getSCMCFeatures()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+}
+
+static int PyBobApSpectrogram_SetSCMCFeatures
+(PyBobApSpectrogramObject* self, PyObject* o, void* /*closure*/) {
+
+  bool b = PyObject_IsTrue(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setSCMCFeatures(b);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `scmc_features' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
+}
+
 
 PyDoc_STRVAR(s_energy_filter_str, "energy_filter");
 PyDoc_STRVAR(s_energy_filter_doc,
@@ -557,6 +814,48 @@ static PyGetSetDef PyBobApSpectrogram_getseters[] = {
       (getter)PyBobApSpectrogram_GetMelScale,
       (setter)PyBobApSpectrogram_SetMelScale,
       s_mel_scale_doc,
+      0
+    },
+    {
+      s_rect_filter_str,
+      (getter)PyBobApSpectrogram_GetRectangularFilter,
+      (setter)PyBobApSpectrogram_SetRectangularFilter,
+      s_rect_filter_doc,
+      0
+    },
+    {
+      s_inverse_filter_str,
+      (getter)PyBobApSpectrogram_GetInverseFilter,
+      (setter)PyBobApSpectrogram_SetInverseFilter,
+      s_inverse_filter_doc,
+      0
+    },
+    {
+      s_normalize_spectrum_str,
+      (getter)PyBobApSpectrogram_GetNormalizeSpectrum,
+      (setter)PyBobApSpectrogram_SetNormalizeSpectrum,
+      s_normalize_spectrum_doc,
+      0
+    },
+    {
+      s_ssfc_features_str,
+      (getter)PyBobApSpectrogram_GetSSFCFeatures,
+      (setter)PyBobApSpectrogram_SetSSFCFeatures,
+      s_ssfc_features_doc,
+      0
+    },
+    {
+      s_scfc_features_str,
+      (getter)PyBobApSpectrogram_GetSCFCFeatures,
+      (setter)PyBobApSpectrogram_SetSCFCFeatures,
+      s_scfc_features_doc,
+      0
+    },
+    {
+      s_scmc_features_str,
+      (getter)PyBobApSpectrogram_GetSCMCFeatures,
+      (setter)PyBobApSpectrogram_SetSCMCFeatures,
+      s_scmc_features_doc,
       0
     },
     {

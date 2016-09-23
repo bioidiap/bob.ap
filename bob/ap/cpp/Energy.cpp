@@ -10,8 +10,8 @@
 #include <bob.core/assert.h>
 
 bob::ap::Energy::Energy(const double sampling_frequency, const double win_length_ms,
-    const double win_shift_ms):
-  bob::ap::FrameExtractor(sampling_frequency, win_length_ms, win_shift_ms),
+    const double win_shift_ms, const bool normalize_mean):
+  bob::ap::FrameExtractor(sampling_frequency, win_length_ms, win_shift_ms, normalize_mean),
   m_energy_floor(1.)
 {
   // Initializes logarithm of flooring values
@@ -19,7 +19,8 @@ bob::ap::Energy::Energy(const double sampling_frequency, const double win_length
 }
 
 bob::ap::Energy::Energy(const bob::ap::Energy& other):
-  bob::ap::FrameExtractor(other), m_energy_floor(1.)
+  bob::ap::FrameExtractor(other),
+  m_energy_floor(other.m_energy_floor)
 {
   // Initializes logarithm of flooring values
   m_log_energy_floor = log(m_energy_floor);

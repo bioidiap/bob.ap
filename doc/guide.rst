@@ -1,5 +1,6 @@
 .. vim: set fileencoding=utf-8 :
 .. Andre Anjos <andre.anjos@idiap.ch>
+.. Pavel Korshunov <pavel.korshunov>@idiap.ch
 .. Mon 17 Feb 2014 16:22:21 CET
 
 .. testsetup:: aptest
@@ -23,18 +24,31 @@
  User Guide
 ************
 
-This section will give a deeper insight in some simple and some more complex
-audio processing utilities of |project|. Currently, only cepstral extraction
-module is available. We are planning to update and add more features in the
+This section will give more insight in simple and more complex
+audio processing utilities of |project|. Currently, the following cepstral-based features are available:
+using rectangular (RFCC), mel-scaled triangular (MFCC) [Davis1980]_, inverted mel-scaled triangular (IMFCC),
+and linear triangular (LFCC) filters [Furui1981]_, spectral flux-based features (SSFC) [Scheirer1997]_,
+subband centroid frequency (SCFC) [Le2011]_. We are planning to update and add more features in the
 near future.
+
+.. [Davis1980] S. Davis and P. Mermelstein, "Comparison of parametric representations for monosyllabic
+   word recognition in continuously spoken sentences", in IEEE Transactions on Acoustics, Speech, and Signal Processing,
+   1980, num 4, vol. 28, pages 357-366.
+.. [Furui1981] S. Furui, Cepstral analysis technique for automatic speaker verification, in
+   IEEE Transactions on Acoustics, Speech, and Signal Processing, 1981, num 2 vol 29, pages 254-272.
+.. [Scheirer1997] E. Scheirer and M. Slaney, Construction and evaluation of a robust multifeature speech/music discriminator,
+   in IEEE International Conference on Acoustics, Speech, and Signal Processing, ICASSP, 1997, vol 2, pages 1331-1334.
+.. [Le2011] P. N. Le, E. Ambikairajah, J. Epps, V. Sethu, E. H. C. Choi, Investigation of Spectral Centroid Features for Cognitive Load Classification,
+   in Speech Commun., April, 2011, num 4, vol 53, pages 540--551.
 
 Simple audio processing
 =======================
 
 Below are 3 examples on how to read a wavefile and how to compute Linear frequency Cepstral Coefficients (LFCC) and Mel frequency cepstrum coefficients (MFCC).
+Other features can be computed in a similar fashion (please check Python API for details).
 
 Reading audio files
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 The usual native formats can be read with :py:mod:`scipy.io.wavfile` module. Other
 wave formats can be found in some other python modules like :py:mod:`pysox`. An
@@ -80,7 +94,7 @@ values are the default ones:
   >>> f_min = 0. # The minimal frequency of the filter bank
   >>> f_max = 4000. # The maximal frequency of the filter bank
   >>> delta_win = 2 # The integer delta value used for computing the first and second order derivatives
-  >>> pre_emphasis_coef = 0.97 # The coefficient used for the pre-emphasis
+  >>> pre_emphasis_coef = 1.0 # The coefficient used for the pre-emphasis
   >>> dct_norm = True # A factor by which the cepstral coefficients are multiplied
   >>> mel_scale = True # Tell whether cepstral features are extracted on a linear (LFCC) or Mel (MFCC) scale
 

@@ -2,7 +2,8 @@
  * @date Wed Jan 11:09:30 2013 +0200
  * @author Elie Khoury <Elie.Khoury@idiap.ch>
  * @author Laurent El Shafey <Laurent.El-Shafey@idiap.ch>
- *
+ * @author Pavel Korshunov <Pavel.Korshunov@idiap.ch>
+*
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
@@ -12,23 +13,27 @@
 #include <bob.core/check.h>
 
 bob::ap::FrameExtractor::FrameExtractor(const double sampling_frequency,
-    const double win_length_ms, const double win_shift_ms):
+    const double win_length_ms, const double win_shift_ms,
+    const bool normalize_mean):
   m_sampling_frequency(sampling_frequency), m_win_length_ms(win_length_ms),
-  m_win_shift_ms(win_shift_ms)
+  m_win_shift_ms(win_shift_ms), m_normalize_mean(normalize_mean)
 {
   // Initialization
   initWinLength();
   initWinShift();
+  initMaxRange();
 }
 
 bob::ap::FrameExtractor::FrameExtractor(const FrameExtractor& other):
   m_sampling_frequency(other.m_sampling_frequency),
   m_win_length_ms(other.m_win_length_ms),
-  m_win_shift_ms(other.m_win_shift_ms)
+  m_win_shift_ms(other.m_win_shift_ms),
+  m_normalize_mean(other.m_normalize_mean)
 {
   // Initialization
   initWinLength();
   initWinShift();
+  initMaxRange();
 }
 
 bob::ap::FrameExtractor::~FrameExtractor()
@@ -42,10 +47,12 @@ bob::ap::FrameExtractor& bob::ap::FrameExtractor::operator=(const bob::ap::Frame
     m_sampling_frequency = other.m_sampling_frequency;
     m_win_length_ms = other.m_win_length_ms;
     m_win_shift_ms = other.m_win_shift_ms;
+    m_normalize_mean = other.m_normalize_mean;
 
     // Initialization
     initWinLength();
     initWinShift();
+    initMaxRange();
   }
   return *this;
 }
@@ -54,7 +61,8 @@ bool bob::ap::FrameExtractor::operator==(const bob::ap::FrameExtractor& other) c
 {
   return (m_sampling_frequency == other.m_sampling_frequency &&
       m_win_length_ms == other.m_win_length_ms &&
-      m_win_shift_ms == other.m_win_shift_ms);
+      m_win_shift_ms == other.m_win_shift_ms &&
+      m_normalize_mean == other.m_normalize_mean);
 }
 
 bool bob::ap::FrameExtractor::operator!=(const bob::ap::FrameExtractor& other) const
@@ -67,6 +75,7 @@ void bob::ap::FrameExtractor::setSamplingFrequency(const double sampling_frequen
   m_sampling_frequency = sampling_frequency;
   initWinLength();
   initWinShift();
+  initMaxRange();
 }
 
 void bob::ap::FrameExtractor::setWinLengthMs(const double win_length_ms)
@@ -87,6 +96,7 @@ void bob::ap::FrameExtractor::initWinLength()
   if (m_win_length == 0)
     throw std::runtime_error("The length of the window is 0. You should use a larger sampling rate or window length in miliseconds");
   initWinSize();
+
 }
 
 void bob::ap::FrameExtractor::initWinShift()
@@ -100,6 +110,12 @@ void bob::ap::FrameExtractor::initWinSize()
   m_cache_frame_d.resize(m_win_size);
 }
 
+void bob::ap::FrameExtractor::initMaxRange()
+{
+  // update m_max_range, since m_sampling_frequency may have changed or set inside an Init()
+  m_max_range = pow(2.0, m_sampling_frequency/1000)/2.0 - 0.5;
+}
+
 void bob::ap::FrameExtractor::extractNormalizeFrame(const blitz::Array<double,1>& input,
   const size_t i, blitz::Array<double,1>& frame_d) const
 {
@@ -109,8 +125,19 @@ void bob::ap::FrameExtractor::extractNormalizeFrame(const blitz::Array<double,1>
   blitz::Range rf(0,(int)m_win_length-1);
   blitz::Range ri(i*(int)m_win_shift,i*(int)m_win_shift+(int)m_win_length-1);
   frame_d(rf) = input(ri);
-  // Subtract mean value
-  frame_d -= blitz::mean(frame_d);
+
+  if (m_normalize_mean) { // added by Pavel Korshunov
+    // We normalize by subtracting mean value
+    frame_d(rf) -= blitz::mean(frame_d);
+  }
+  else {
+    //Otherwise, we normalize by dividing by maximum possible range, which is set in initWinLength()
+    //This method of normalization is used in the following paper from Interspeech 2015:
+    //"A Comparison of Features for Synthetic Speech Detection" by Md Sahidullah, Tomi Kinnunen, Cemal Hanilci
+    if (m_max_range == 0)
+      throw std::runtime_error("FrameExtractor: the maximum range in frame is 0. Please make sure you provide non-zero sampling frequency.");
+    frame_d /= m_max_range;
+  }
 }
 
 
