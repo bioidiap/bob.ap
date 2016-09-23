@@ -43,7 +43,7 @@ class Ceps: public Spectrogram
      * @brief Constructor. Initializes working arrays
      */
     Ceps(const double sampling_frequency, const double win_length_ms=20.,
-      const double win_shift_ms=10., const bool normalize_mean=true, const size_t n_filters=24,
+      const double win_shift_ms=10., const size_t n_filters=24,
       const size_t n_ceps=19, const double f_min=0.,
       const double f_max=4000., const size_t delta_win=2,
       const double pre_emphasis_coef=0.95, const bool mel_scale=true,

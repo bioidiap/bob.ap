@@ -15,7 +15,8 @@ from scipy import signal
 from . import Spectrogram
 from .test_utils import *
 
-def spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, normalize_mean, n_filters, f_min, f_max, pre_emphasis_coef, mel_scale):
+def spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filters,
+                            f_min, f_max, pre_emphasis_coef, mel_scale, normalize_mean):
   #########################
   ## Initialisation part ##
   #########################
@@ -71,12 +72,14 @@ def spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, normali
 
   return numpy.array(features)
 
-def spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, normalize_mean, n_filters, f_min, f_max,
-                               pre_emphasis_coef, mel_scale):
-  c = Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, normalize_mean, n_filters, f_min, f_max, pre_emphasis_coef, mel_scale)
+def spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, f_min, f_max,
+                               pre_emphasis_coef, mel_scale, normalize_mean):
+  c = Spectrogram(rate_wavsample[0], win_length_ms, win_shift_ms, n_filters,
+                  f_min, f_max, pre_emphasis_coef, mel_scale, normalize_mean)
 
   A = c(rate_wavsample[1])
-  B = spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, normalize_mean, n_filters, f_min, f_max, pre_emphasis_coef, mel_scale)
+  B = spectrogram_computation(rate_wavsample, win_length_ms, win_shift_ms, n_filters,
+                              f_min, f_max, pre_emphasis_coef, mel_scale, normalize_mean)
 
   diff=numpy.sum(numpy.sum((A-B)*(A-B)))
   assert numpy.allclose(diff, 0., rtol=1e-07, atol=1e-05)
@@ -95,5 +98,5 @@ def test_spectrogram():
     f_max = 4000.
     pre_emphasis_coef = 1.0
     mel_scale = True
-    spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, normalize_mean, n_filters, f_min, f_max,
-                               pre_emphasis_coef, mel_scale)
+    spectrogram_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, n_filters, f_min, f_max,
+                               pre_emphasis_coef, mel_scale, normalize_mean)

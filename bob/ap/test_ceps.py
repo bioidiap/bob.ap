@@ -26,7 +26,6 @@ class DotDict(dict):
 
 cepstral_params = DotDict(dict(win_length_ms=20,
                                win_shift_ms=10,
-                               normalize_mean=True,
                                n_filters=20,
                                f_min=0.,
                                f_max=4000.,
@@ -35,6 +34,7 @@ cepstral_params = DotDict(dict(win_length_ms=20,
                                n_ceps=20,
                                delta_win=2,
                                dct_norm=True,
+                               normalize_mean=True,
                                with_energy=True,
                                with_delta=True,
                                with_delta_delta=True
@@ -222,9 +222,9 @@ def cepstral_comparison_run(cepstral_params):
   rate_wavsample = read(pkg_resources.resource_filename(__name__, os.path.join('data', 'sample.wav')))
 
   cepstral = Ceps(rate_wavsample[0], cepstral_params.win_length_ms, cepstral_params.win_shift_ms,
-                  cepstral_params.normalize_mean, cepstral_params.n_filters, cepstral_params.n_ceps,
-                  cepstral_params.f_min, cepstral_params.f_max, cepstral_params.delta_win,
-                  cepstral_params.pre_emphasis_coef, cepstral_params.mel_scale, dct_norm=cepstral_params.dct_norm)
+                  cepstral_params.n_filters, cepstral_params.n_ceps, cepstral_params.f_min, cepstral_params.f_max,
+                  cepstral_params.delta_win, cepstral_params.pre_emphasis_coef, cepstral_params.mel_scale,
+                  cepstral_params.dct_norm, cepstral_params.normalize_mean)
   cepstral.with_energy = cepstral_params.with_energy
   cepstral.with_delta = cepstral_params.with_delta
   if cepstral.with_delta:
@@ -320,9 +320,9 @@ def test_cepstral_copy():
   # # Test comparison operators and copy constructor
   rate_wavsample = read(pkg_resources.resource_filename(__name__, os.path.join('data', 'sample.wav')))
   cepstral = Ceps(rate_wavsample[0], cepstral_params.win_length_ms, cepstral_params.win_shift_ms,
-                  cepstral_params.normalize_mean, cepstral_params.n_filters, cepstral_params.n_ceps,
-                  cepstral_params.f_min, cepstral_params.f_max, cepstral_params.delta_win,
-                  cepstral_params.pre_emphasis_coef, cepstral_params.mel_scale, dct_norm=cepstral_params.dct_norm)
+                  cepstral_params.n_filters, cepstral_params.n_ceps, cepstral_params.f_min,
+                  cepstral_params.f_max, cepstral_params.delta_win, cepstral_params.pre_emphasis_coef,
+                  cepstral_params.mel_scale, cepstral_params.dct_norm, cepstral_params.normalize_mean, )
   c1 = Ceps(cepstral)
   c2 = Ceps(c1)
   c2.win_length_ms = 27.

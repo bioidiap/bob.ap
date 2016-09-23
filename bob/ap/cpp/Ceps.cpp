@@ -20,7 +20,7 @@ bob::ap::Ceps::Ceps(const double sampling_frequency,
     const bool mel_scale, const bool dct_norm, const bool normalize_mean,
     const bool rect_filter, const bool inverse_filter, const bool normalize_spectrum,
     const bool ssfc_features, const bool scfc_features, const bool scmc_features):
-  bob::ap::Spectrogram(sampling_frequency, win_length_ms, win_shift_ms, normalize_mean,
+  bob::ap::Spectrogram(sampling_frequency, win_length_ms, win_shift_ms,
     n_filters, f_min, f_max, pre_emphasis_coeff, mel_scale, normalize_mean, rect_filter, inverse_filter,
     normalize_spectrum, ssfc_features, scfc_features, scmc_features),
   m_n_ceps(n_ceps), m_delta_win(delta_win), m_dct_norm(dct_norm),
