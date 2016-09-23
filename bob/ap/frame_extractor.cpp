@@ -13,7 +13,7 @@
 PyDoc_STRVAR(s_frame_extractor_str, BOB_EXT_MODULE_PREFIX ".FrameExtractor");
 
 PyDoc_STRVAR(s_frame_extractor_doc,
-"FrameExtractor(sampling_frequency, [win_length_ms=20., [win_shift_ms=10.]]) -> new FrameExtractor\n\
+"FrameExtractor(sampling_frequency, [win_length_ms=20., [win_shift_ms=10., [normalize_mean=True]]]) -> new FrameExtractor\n\
 FrameExtractor(other) -> new FrameExtractor\n\
 \n\
 This class is a base type for classes that perform audio\n\
@@ -34,6 +34,11 @@ win_length_ms\n\
 \n\
 win_shift_ms\n\
   [float] the window shift in miliseconds\n\
+\n\
+normalize_mean\n\
+  [bool] Tells whether frame should be normalized \n\
+  by subtracting mean (True) or dividing by max_range (False)\n\
+  ``True`` is the default value.\n\
 \n\
 other\n\
   [FrameExtractor] an object of which is or inherits from a FrameExtractor\n\
@@ -95,17 +100,22 @@ static int PyBobApFrameExtractor_InitParameters
     "sampling_frequency",
     "win_length_ms",
     "win_shift_ms",
+    "normalize_mean",
     0};
   static char** kwlist = const_cast<char**>(const_kwlist);
 
   double sampling_frequency = 0.;
   double win_length_ms = 20.;
   double win_shift_ms = 10.;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|dd", kwlist,
-        &sampling_frequency, &win_length_ms, &win_shift_ms)) return -1;
+  PyObject* normalize_mean = Py_True;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddO", kwlist,
+        &sampling_frequency, &win_length_ms, &win_shift_ms, &normalize_mean)) return -1;
 
+  bool normalize_mean_ = PyObject_IsTrue(normalize_mean);
+  
   try {
-    self->cxx = new bob::ap::FrameExtractor(sampling_frequency, win_length_ms, win_shift_ms);
+    self->cxx = new bob::ap::FrameExtractor(sampling_frequency, 
+        win_length_ms, win_shift_ms, normalize_mean_);
     if (!self->cxx) {
       PyErr_Format(PyExc_MemoryError, "cannot create new object of type `%s' - no more memory", Py_TYPE(self)->tp_name);
       return -1;
@@ -170,7 +180,7 @@ static int PyBobApFrameExtractor_Init(PyBobApFrameExtractorObject* self,
 static PyObject* PyBobApFrameExtractor_Repr(PyBobApFrameExtractorObject* self) {
   static const int MAXSIZE = 256;
   char buffer[MAXSIZE];
-  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs());
+  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f, normalize_mean=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), self->cxx->getNormalizeMean()?"True":"False");
   return
 # if PY_VERSION_HEX >= 0x03000000
   PyUnicode_FromStringAndSize
@@ -318,6 +328,38 @@ static int PyBobApFrameExtractor_SetWinShiftMs
 
 }
 
+PyDoc_STRVAR(s_normalize_mean_str, "normalize_mean");
+PyDoc_STRVAR(s_normalize_mean_doc,
+"Tells whether frame should be normalized by subtracting mean (True) or dividing by max_range (False)\n\
+");
+
+static PyObject* PyBobApFrameExtractor_GetNormalizeMean
+(PyBobApFrameExtractorObject* self, void* /*closure*/) {
+  if (self->cxx->getNormalizeMean()) Py_RETURN_TRUE;
+  else Py_RETURN_FALSE;
+}
+
+static int PyBobApFrameExtractor_SetNormalizeMean
+(PyBobApFrameExtractorObject* self, PyObject* o, void* /*closure*/) {
+
+  bool b = PyObject_IsTrue(o);
+  if (PyErr_Occurred()) return -1;
+
+  try {
+    self->cxx->setNormalizeMean(b);
+  }
+  catch (std::exception& ex) {
+    PyErr_SetString(PyExc_RuntimeError, ex.what());
+    return -1;
+  }
+  catch (...) {
+    PyErr_Format(PyExc_RuntimeError, "cannot reset `normalize_mean' of %s: unknown exception caught", Py_TYPE(self)->tp_name);
+    return -1;
+  }
+
+  return 0;
+}
+
 PyDoc_STRVAR(s_win_length_str, "win_length");
 PyDoc_STRVAR(s_win_length_doc,
 "The normalized window length w.r.t. the sample frequency"
@@ -372,6 +414,13 @@ static PyGetSetDef PyBobApFrameExtractor_getseters[] = {
       (getter)PyBobApFrameExtractor_GetWinShift,
       0,
       s_win_shift_doc,
+      0
+    },
+    {
+      s_normalize_mean_str,
+      (getter)PyBobApFrameExtractor_GetNormalizeMean,
+      (setter)PyBobApFrameExtractor_SetNormalizeMean,
+      s_normalize_mean_doc,
       0
     },
     {0}  /* Sentinel */

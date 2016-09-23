@@ -2,6 +2,7 @@
  * @date Wed Jan 11:09:30 2013 +0200
  * @author Elie Khoury <Elie.Khoury@idiap.ch>
  * @author Laurent El Shafey <Laurent.El-Shafey@idiap.ch>
+ * @author Pavel Korshunov <Pavel.Korshunov@idiap.ch>
  *
  * @brief Implement Linear and Mel Frequency Cepstral Coefficients
  * functions (MFCC and LFCC)
@@ -14,11 +15,15 @@
 
 bob::ap::Ceps::Ceps(const double sampling_frequency,
     const double win_length_ms, const double win_shift_ms,
+    const bool normalize_mean,
     const size_t n_filters, const size_t n_ceps, const double f_min,
     const double f_max, const size_t delta_win, const double pre_emphasis_coeff,
-    const bool mel_scale, const bool dct_norm):
-  bob::ap::Spectrogram(sampling_frequency, win_length_ms, win_shift_ms,
-    n_filters, f_min, f_max, pre_emphasis_coeff, mel_scale),
+    const bool mel_scale, const bool rect_filter, const bool inverse_filter, const bool normalize_spectrum,
+    const bool dct_norm, const bool ssfc_features,
+    const bool scfc_features, const bool scmc_features):
+  bob::ap::Spectrogram(sampling_frequency, win_length_ms, win_shift_ms, normalize_mean,
+    n_filters, f_min, f_max, pre_emphasis_coeff, mel_scale, rect_filter, inverse_filter,
+    normalize_spectrum, ssfc_features, scfc_features, scmc_features),
   m_n_ceps(n_ceps), m_delta_win(delta_win), m_dct_norm(dct_norm),
   m_with_energy(false), m_with_delta(false), m_with_delta_delta(false)
 {
@@ -95,12 +100,21 @@ void bob::ap::Ceps::setDctNorm(bool dct_norm)
 
 void bob::ap::Ceps::initCacheDctKernel()
 {
-  // Dct Kernel initialization
+  // Dct Kernel initialization, we implement DCT-II variant here
   m_dct_kernel.resize(m_n_ceps,m_n_filters);
   blitz::firstIndex i;
   blitz::secondIndex j;
+  // If normalize, use the Matlab-based implementation
   double dct_coeff = m_dct_norm ? (double)sqrt(2./(double)(m_n_filters)) : 1.;
-  m_dct_kernel = dct_coeff * blitz::cos(M_PI*(i+1)*(j+0.5)/(double)(m_n_filters));
+
+  m_dct_kernel = dct_coeff * blitz::cos(M_PI*(i)*(j+0.5)/(double)(m_n_filters));
+
+  // Finish normalization: multiple first row by sqrt(0.5), as per Matlab implementation of DCT-II
+  if (m_dct_norm) {
+    blitz::Array<double,1> firstIndex_coeff (m_n_ceps);
+    firstIndex_coeff = blitz::where(i == 0, sqrt(0.5), 1.); //first element is sqrt(0.5), the rest are 1.
+    m_dct_kernel = firstIndex_coeff(i) * m_dct_kernel(i,j); // elementwise multiplication
+  }
 }
 
 
@@ -111,6 +125,10 @@ blitz::TinyVector<int,2> bob::ap::Ceps::getShape(const size_t input_size) const
 
   // 1. Number of frames
   res(0) = 1+((input_size-m_win_length)/m_win_shift);
+
+  //reduce the number of frames by 1 for SSFC features, so the resulted matrix is of correct size
+  if (m_ssfc_features)
+     res(0) -= 1;
 
   // 2. Dimension of the feature vector
   int dim0=m_n_ceps;
@@ -134,33 +152,80 @@ blitz::TinyVector<int,2> bob::ap::Ceps::getShape(const blitz::Array<double,1>& i
 void bob::ap::Ceps::operator()(const blitz::Array<double,1>& input,
   blitz::Array<double,2>& ceps_matrix)
 {
+
   // Get expected dimensionality of output array
   blitz::TinyVector<int,2> feature_shape = bob::ap::Ceps::getShape(input);
   // Check dimensionality of output array
   bob::core::array::assertSameShape(ceps_matrix, feature_shape);
   int n_frames=feature_shape(0);
+  int shift_frame=0;
+  double last_frame_elem=0;
+
+  // Create the holder for the previous frame and make sure it's the same as the current frame
+  // Used by SSFC features computation
+  blitz::Array<double,1> _prev_frame_d;
+  _prev_frame_d.resize(m_cache_frame_d.shape());
+  // Create the temporary holder for SSFC features computation
+  blitz::Array<double,1> _temp_frame_d;
+  _temp_frame_d.resize(m_cache_frame_d.shape());
+
+  if (m_ssfc_features) {
+    //we are going to always process the next frame within the loop
+    shift_frame = 1;
+    // Init the first frame to the input
+    extractNormalizeFrame(input, 0, _prev_frame_d);
+    // Apply pre-emphasis
+    pre_emphasis(_prev_frame_d, last_frame_elem);
+    // Apply the Hamming window
+    hammingWindow(_prev_frame_d);
+    // Take the power spectrum of the first part of the FFT
+    powerSpectrumFFT(_prev_frame_d);
+
+  }
 
   blitz::Range r1(0,m_n_ceps-1);
   for (int i=0; i<n_frames; ++i)
   {
-    // Set padded frame to zero
-    extractNormalizeFrame(input, i, m_cache_frame_d);
+    // Init the current frame from the input, we process (i+1)th frame for SSFC features
+    extractNormalizeFrame(input, i+shift_frame, m_cache_frame_d);
 
     // Update output with energy if required
     if (m_with_energy)
       ceps_matrix(i,(int)m_n_ceps) = logEnergy(m_cache_frame_d);
 
     // Apply pre-emphasis
-    pre_emphasis(m_cache_frame_d);
+    pre_emphasis(m_cache_frame_d, last_frame_elem);
     // Apply the Hamming window
     hammingWindow(m_cache_frame_d);
     // Take the power spectrum of the first part of the FFT
+    // Note that after this call, we only operate on the first half of m_cache_frame_d array. The second half is ignored.
+    // powerSpectrumFFT changes first half+1 elements of m_cache_frame_d array
     powerSpectrumFFT(m_cache_frame_d);
-    // Filter with the triangular filter bank (either in linear or Mel domain)
+
+    if (m_ssfc_features)
+    {
+      // retrieve the previous frame into our temp
+      _temp_frame_d = _prev_frame_d;
+      // remember the current frame for the next round, before we change current frame
+      _prev_frame_d = m_cache_frame_d;
+      // Computation of SSFC features:
+      // We take the previous frame and find the difference between values of current and previous frames
+      m_cache_frame_d -= _temp_frame_d;
+      // We compute norm2 for the difference as per SSFC features
+      m_cache_frame_d = blitz::pow2(m_cache_frame_d);
+      // Then, we can apply the filter and DCT later on
+    }
+    // Filter with triangular or rectangular filter bank (either in linear or Mel domain)
     filterBank(m_cache_frame_d);
+
     // Apply DCT kernel and update the output
     blitz::Array<double,1> ceps_matrix_row(ceps_matrix(i,r1));
-    applyDct(ceps_matrix_row);
+
+    if (m_scfc_features)
+      // do not apply DCT on SCFC features
+      ceps_matrix_row = m_cache_filters(r1);
+    else
+      applyDct(ceps_matrix_row);
   }
 
   //compute the center of the cut-off frequencies
@@ -226,8 +291,9 @@ void bob::ap::Ceps::addDerivative(const blitz::Array<double,2>& input, blitz::Ar
     }
   }
   // Sum of the integer squared from 1 to delta_win
-  const double sum = m_delta_win*(m_delta_win+1)*(2*m_delta_win+1)/3;
-  output /= sum;
+  // pavel - remove division for the sake of compitability with Matlab code of RFFC features comparison paper
+  //const double sum = m_delta_win*(m_delta_win+1)*(2*m_delta_win+1)/3;
+  //output /= sum;
 }
 
 /*

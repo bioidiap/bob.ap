@@ -31,7 +31,7 @@ class Energy: public FrameExtractor
      * @brief Constructor. Initializes working arrays
      */
     Energy(const double sampling_frequency, const double win_length_ms=20.,
-      const double win_shift_ms=10.);
+      const double win_shift_ms=10., const bool normalize_mean=true);
 
     /**
      * @brief Copy constructor

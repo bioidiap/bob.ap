@@ -32,7 +32,8 @@ class FrameExtractor
      * @brief Constructor. Initializes working arrays
      */
     FrameExtractor(const double sampling_frequency,
-      const double win_length_ms=20., const double win_shift_ms=10.);
+      const double win_length_ms=20., const double win_shift_ms=10.,
+      const bool normalize_mean=true);
 
     /**
      * @brief Copy Constructor
@@ -90,6 +91,11 @@ class FrameExtractor
      */
     size_t getWinShift() const
     { return m_win_shift; }
+    /**
+     * @brief Tells whether frame should be normalized by subtracting mean (True) or dividing by max_range (False)
+     */
+    bool getNormalizeMean() const
+    { return m_normalize_mean; }
 
     /**
      * @brief Sets the sampling frequency/frequency rate
@@ -103,6 +109,11 @@ class FrameExtractor
      * @brief Sets the window shift in miliseconds
      */
     virtual void setWinShiftMs(const double win_shift_ms);
+    /**
+     * @brief Sets whether frame should be normalized by subtracting mean (True) or dividing by max_range (False)
+     */
+    virtual void setNormalizeMean(const double normalize_mean)
+    { m_normalize_mean = normalize_mean; }
 
   protected:
     /**
@@ -114,6 +125,7 @@ class FrameExtractor
     virtual void initWinSize();
     virtual void initWinLength();
     virtual void initWinShift();
+    virtual void initMaxRange();
 
     double m_sampling_frequency; ///< The sampling frequency
     double m_win_length_ms; ///< The window length in miliseconds
@@ -121,6 +133,8 @@ class FrameExtractor
     double m_win_shift_ms;
     size_t m_win_shift;
     size_t m_win_size;
+    double m_max_range; //half of the maximum possible dynamic range of the original signal (for 16 bits, it is 32768)
+    bool m_normalize_mean; //normalize the frame by subtracting its mean
 
     mutable blitz::Array<double,1> m_cache_frame_d;
 };

@@ -13,7 +13,7 @@
 PyDoc_STRVAR(s_energy_str, BOB_EXT_MODULE_PREFIX ".Energy");
 
 PyDoc_STRVAR(s_energy_doc,
-"Energy(sampling_frequency, [win_length_ms=20., [win_shift_ms=10.]]) -> new Energy\n\
+"Energy(sampling_frequency, [win_length_ms=20., [win_shift_ms=10., [normalize_mean=True]]]) -> new Energy\n\
 Energy(other) -> new Energy\n\
 \n\
 Objects of this class, after configuration, can extract the energy\n\
@@ -29,6 +29,11 @@ win_length_ms\n\
 \n\
 win_shift_ms\n\
   [float] the window shift in miliseconds\n\
+\n\
+normalize_mean\n\
+  [bool] Tells whether frame should be normalized \n\
+  by subtracting mean (True) or dividing by max_range (False)\n\
+  ``True`` is the default value.\n\
 \n\
 other\n\
   [Energy] an object of which is or inherits from ``Energy``\n\
@@ -92,17 +97,22 @@ static int PyBobApEnergy_InitParameters
     "sampling_frequency",
     "win_length_ms",
     "win_shift_ms",
+    "normalize_mean",
     0};
   static char** kwlist = const_cast<char**>(const_kwlist);
 
   double sampling_frequency = 0.;
   double win_length_ms = 20.;
   double win_shift_ms = 10.;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|dd", kwlist,
-        &sampling_frequency, &win_length_ms, &win_shift_ms)) return -1;
+  PyObject* normalize_mean = Py_True;
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|ddO", kwlist,
+        &sampling_frequency, &win_length_ms, &win_shift_ms, &normalize_mean)) return -1;
+
+  bool normalize_mean_ = PyObject_IsTrue(normalize_mean);
 
   try {
-    self->cxx = new bob::ap::Energy(sampling_frequency, win_length_ms, win_shift_ms);
+    self->cxx = new bob::ap::Energy(sampling_frequency,
+        win_length_ms, win_shift_ms, normalize_mean_);
     if (!self->cxx) {
       PyErr_Format(PyExc_MemoryError, "cannot create new object of type `%s' - no more memory", Py_TYPE(self)->tp_name);
       return -1;
@@ -168,7 +178,7 @@ static int PyBobApEnergy_Init(PyBobApEnergyObject* self,
 static PyObject* PyBobApEnergy_Repr(PyBobApEnergyObject* self) {
   static const int MAXSIZE = 256;
   char buffer[MAXSIZE];
-  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs());
+  auto count = std::snprintf(buffer, MAXSIZE, "%s(sampling_frequency=%f, win_length_ms=%f, win_shift_ms=%f, normalize_mean=%s)", Py_TYPE(self)->tp_name, self->cxx->getSamplingFrequency(), self->cxx->getWinLengthMs(), self->cxx->getWinShiftMs(), self->cxx->getNormalizeMean()?"True":"False");
   return
 # if PY_VERSION_HEX >= 0x03000000
   PyUnicode_FromStringAndSize
