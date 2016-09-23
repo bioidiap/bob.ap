@@ -13,7 +13,8 @@
 .. todolist::
 
 This module contains base functionality from Bob bound to Python, available in
-the C++ counter-part ``bob::ap``. It includes audio processing utilities.
+the C++ counter-part ``bob::ap``. It includes audio processing utilities that can be used
+for computation of the following audio features: MFCC, IMFCC, LFCC, RFCC, SCFC, SSFC, and SCMC.
 
 Documentation
 -------------

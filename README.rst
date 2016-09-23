@@ -20,8 +20,14 @@
 ==========================
 
 This package is part of the signal-processing and machine learning toolbox
-Bob_. It contains basic audio processing utilities.
+Bob_. It contains basic audio processing utilities. Currently, the following cepstral-based features are available:
+using rectangular (RFCC), mel-scaled triangular (MFCC) [Davis1980]_, inverted mel-scaled triangular (IMFCC),
+and linear triangular (LFCC) filters [Furui1981]_, spectral flux-based features (SSFC) [Scheirer1997]_,
+subband centroid frequency (SCFC) [Le2011]_. We are planning to update and add more features in the
+near future.
 
+*Please note that the implementation of MFCC and LFCC features has changed compared to earlier version of the package,
+as we corrected pre-emphasis and DCT computations. Delta and delta-delta computation was slightly changed too.*
 
 Installation
 ------------
@@ -39,8 +45,18 @@ Contact
 For questions or reporting issues to this software package, contact our
 development `mailing list`_.
 
+.. [Davis1980] S. Davis and P. Mermelstein, "Comparison of parametric representations for monosyllabic
+   word recognition in continuously spoken sentences", in IEEE Transactions on Acoustics, Speech, and Signal Processing,
+   1980, num 4, vol. 28, pages 357-366.
+.. [Furui1981] S. Furui, Cepstral analysis technique for automatic speaker verification, in
+   IEEE Transactions on Acoustics, Speech, and Signal Processing, 1981, num 2 vol 29, pages 254-272.
+.. [Scheirer1997] E. Scheirer and M. Slaney, Construction and evaluation of a robust multifeature speech/music discriminator,
+   in IEEE International Conference on Acoustics, Speech, and Signal Processing, ICASSP, 1997, vol 2, pages 1331-1334.
+.. [Le2011] P. N. Le, E. Ambikairajah, J. Epps, V. Sethu, E. H. C. Choi, Investigation of Spectral Centroid Features for Cognitive Load Classification,
+   in Speech Commun., April, 2011, num 4, vol 53, pages 540--551.
 
 .. Place your references here:
 .. _bob: https://www.idiap.ch/software/bob
 .. _installation: https://gitlab.idiap.ch/bob/bob/wikis/Installation
 .. _mailing list: https://groups.google.com/forum/?fromgroups#!forum/bob-devel
+
