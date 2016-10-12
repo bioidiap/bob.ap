@@ -131,7 +131,7 @@ pygments_style = 'sphinx'
 
 # Some variables which are useful for generated material
 project_variable = project.replace('.', '_')
-short_description = u'Bob's audio processing utilities'
+short_description = u'Bob\'s audio processing utilities'
 owner = [u'Idiap Research Institute']
 
 

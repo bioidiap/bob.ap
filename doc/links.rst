@@ -78,3 +78,4 @@
 .. _libpng license: http://www.libpng.org/pub/png/src/libpng-LICENSE.txt
 .. _mit: http://www.opensource.org/licenses/MIT
 .. _python-2.0: http://www.opensource.org/licenses/Python-2.0
+.. _sox: http://sox.sourceforge.net/
