@@ -50,9 +50,10 @@ Other features can be computed in a similar fashion (please check Python API for
 Reading audio files
 ~~~~~~~~~~~~~~~~~~~
 
-The usual native formats can be read with :py:mod:`scipy.io.wavfile` module. Other
-wave formats can be found in some other python modules like :py:mod:`pysox`. An
-example of wave file can be found here ``bob/ap/test/data/sample.wav``
+The usual native formats can be read with :py:mod:`scipy.io.wavfile` module.
+These and other wave formats can be read through SoX_ using our native
+bindings at :py:mod:`bob.io.audio`. An example of wave file can be found at
+``bob/ap/test/data/sample.wav``.
 
 .. doctest:: aptest
   :options: +NORMALIZE_WHITESPACE
@@ -147,3 +148,4 @@ It is also possible to compute first and second derivatives for those features:
   >>> print(len(lfcc_e_d_dd[0]))
   60
 
+.. include:: links.rst
