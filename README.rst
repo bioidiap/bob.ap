@@ -15,9 +15,9 @@
    :target: https://pypi.python.org/pypi/bob.ap
 
 
-==========================
- Audio Processing for Bob
-==========================
+========================
+Audio Processing for Bob
+========================
 
 This package is part of the signal-processing and machine learning toolbox
 Bob_. It contains basic audio processing utilities. Currently, the following cepstral-based features are available:
