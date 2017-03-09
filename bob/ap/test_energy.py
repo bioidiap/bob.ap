@@ -61,10 +61,13 @@ def energy_computation(rate_wavsample, win_length_ms, win_shift_ms, normalize_me
 def energy_comparison_run(rate_wavsample, win_length_ms, win_shift_ms, normalize_mean):
   c = Energy(rate_wavsample[0], win_length_ms, win_shift_ms, normalize_mean)
 
+  shape_a = c.get_shape(rate_wavsample[1])
   A = c(rate_wavsample[1])
 
   B = energy_computation(rate_wavsample, win_length_ms, win_shift_ms, normalize_mean)
+  shape_b = B.shape
 
+  assert shape_a != shape_b
   diff=numpy.sum(numpy.sum((A-B)*(A-B)))
   assert numpy.allclose(diff, 0., rtol=1e-07, atol=1e-05)
 
