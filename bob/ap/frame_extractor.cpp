@@ -468,7 +468,7 @@ static PyObject* PyBobApFrameExtractor_GetShapeArray
 
   PyBlitzArrayObject* input = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O&", kwlist,
-        &input, &PyBlitzArray_Converter)) return 0;
+        &PyBlitzArray_Converter, &input)) return 0;
   auto input_ = make_safe(input);
 
   if (input->ndim != 1 || input->type_num != NPY_FLOAT64) {
