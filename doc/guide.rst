@@ -62,8 +62,8 @@ bindings at :py:mod:`bob.io.audio`. An example of wave file can be found at
   >>> rate, signal = scipy.io.wavfile.read(str(wave_path)) #doctest: +SKIP
   >>> print(rate)
   8000
-  >>> print(signal)
-  [  28   72   58 ..., -301   89  230]
+  >>> numpy.allclose(signal[0:3], [28,  72,  58 ])
+  True
 
 In the above example, the sampling rate of the audio signal is **8 KHz** and
 the signal array is of type **int16**.
