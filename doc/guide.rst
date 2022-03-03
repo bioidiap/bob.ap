@@ -51,9 +51,7 @@ Reading audio files
 ~~~~~~~~~~~~~~~~~~~
 
 The usual native formats can be read with :py:mod:`scipy.io.wavfile` module.
-These and other wave formats can be read through SoX_ using our native
-bindings at :py:mod:`bob.io.audio`. An example of wave file can be found at
-``bob/ap/test/data/sample.wav``.
+An example of wave file can be found at ``bob/ap/test/data/sample.wav``.
 
 .. doctest:: aptest
   :options: +NORMALIZE_WHITESPACE
